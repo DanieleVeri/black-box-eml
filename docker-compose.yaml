@@ -1,0 +1,11 @@
+version: '2.0'
+services:
+  jupyter:
+    build: .
+    ports:
+    - "8888:8888"
+    volumes:
+    - ./emlopt:/app/emlopt
+    - ./tests:/app/tests
+    - ./notebooks:/app/notebooks
+    - ./problems:/app/problems

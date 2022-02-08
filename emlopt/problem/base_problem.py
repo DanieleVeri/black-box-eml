@@ -1,0 +1,51 @@
+import numpy as np
+
+class BaseProblem:
+
+    def __init__(self, name, fun, input_type, input_bounds, constraint_cb=None, stocasthic=False):
+        self.name = name
+        self.fun = fun
+        self.input_type = input_type
+        self.input_bounds = input_bounds
+        self.input_shape = len(self.input_bounds)
+        self.constraint_cb = constraint_cb
+        self.stocasthic = stocasthic
+
+    def get_constrained_dataset(self, n_points):
+        raise NotImplementedError
+
+    def get_dataset(self, n_points):
+        if self.constraint_cb is None:
+            return self.get_unconstrained_dataset(n_points)
+        else:
+            return self.get_constrained_dataset(n_points)
+
+    def get_grid(self, n_points):
+        x_list = []
+        for i, b in enumerate(self.input_bounds):
+            lb = b[0]
+            ub = b[1]
+            if self.input_type[i] == "int":
+                x_list.append(np.arange(lb, ub, max(1, (ub-lb)//n_points)))
+            else:
+                x_list.append(np.arange(lb, ub, (ub-lb)/n_points))
+        x = np.array(np.meshgrid(*x_list)).reshape(self.input_shape,-1).T
+        y = np.zeros((x.shape[0]))
+        for i in range(x.shape[0]):
+            y[i] = self.fun(x[i, :])
+        return x, y
+
+    def get_unconstrained_dataset(self, n_points):
+        x = np.random.rand(n_points, self.input_shape)
+        for i, b in enumerate(self.input_bounds):
+            lb = b[0]
+            ub = b[1]
+            if self.input_type[i] == "int":
+                x[:,i] = np.random.randint(lb, high=ub, size=n_points)
+            else:
+                x[:,i] *= ub - lb
+                x[:,i] += lb
+        y = np.zeros((n_points))
+        for i in range(n_points):
+            y[i] = self.fun(x[i, :])
+        return x, y
