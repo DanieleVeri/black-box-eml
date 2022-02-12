@@ -8,9 +8,8 @@ from emlopt.wandb import WandbContext
 
 from problems.quantization.tpc import build_tpc, constraint_max_bits
 
-# tpc_obj = build_tpc()
-# problem = IntegerProblem("test", tpc_obj, ["int"]*41, [[2, 8]]*41, constraint_max_bits)
-problem = build_problem("test", lambda x: (x[0]+x[1])**2, ["real"]*2, [[2, 8]]*2, constraint_max_bits)
+tpc_obj = build_tpc()
+problem = build_problem("test", tpc_obj, ["int"]*41, [[2, 8]]*41, constraint_max_bits)
 search = SearchLoop(problem, DEFAULT)
 
 wandb_cfg = WandbContext.get_defatult_cfg()

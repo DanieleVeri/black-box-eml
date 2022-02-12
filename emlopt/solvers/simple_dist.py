@@ -8,10 +8,10 @@ from ..eml import parse_tfp, propagate_bound, embed_model, pwl_exp
 from ..utils import min_max_scale_in
 
 
-class IncrementalDist(BaseMILP):
+class SimpleDist(BaseMILP):
 
     def __init__(self, *args, **kwargs):
-        super(IncrementalDist, self).__init__(*args, **kwargs)
+        super(SimpleDist, self).__init__(*args, **kwargs)
         self.lambda_ucb = self.cfg['lambda_ucb']
 
     def solve(self, keras_model, samples_x, samples_y):
@@ -19,14 +19,6 @@ class IncrementalDist(BaseMILP):
         bkd = cplex_backend.CplexBackend()
 
         scaled_x_samples = min_max_scale_in(samples_x, np.array(self.problem.input_bounds))
-
-        k_lip = self.compute_klip(samples_x, samples_y)
-        
-        current_lambda: float
-        if self.lambda_ucb is not None:
-            current_lambda = self.lambda_ucb
-        else:
-            current_lambda = k_lip * ((1-self.current_iteration/self.iterations)**2)
 
         parsed_mdl = parse_tfp(keras_model)
         parsed_mdl, _ = propagate_bound(bkd, parsed_mdl, self.problem.input_shape, timer_logger=self.logger)
@@ -63,11 +55,10 @@ class IncrementalDist(BaseMILP):
         for current_sample_dist in sample_distance_list:
             cplex_model.add_constraint(current_sample_dist >= min_dist, "min dist")
 
-
         # UCB Objective
         ucb = -yvars[0] + \
-            current_lambda * stddev + \
-            (current_lambda/self.problem.input_shape) * min_dist
+            self.lambda_ucb * stddev + \
+            (self.lambda_ucb/self.problem.input_shape) * min_dist
             
         cplex_model.set_objective('max', ucb)
         cplex_model.set_time_limit(self.solver_timeout)
@@ -85,7 +76,7 @@ class IncrementalDist(BaseMILP):
             "mean": solution['out_mean'],
             "stddev": solution['exp_out'],
             "exp_err": solution['exp_out'] - math.exp(solution['out_std']),
-            "lambda_ucb": current_lambda
+            "lambda_ucb": self.lambda_ucb
         }
         self.logger.debug(f"MILP solution:\n{solution_log}")
         if self.logger.level == logging.DEBUG:

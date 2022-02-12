@@ -8,7 +8,7 @@ class ConvexRealProblem(BaseProblem):
     def __init__(self, *args, **kwargs):
         super(ConvexRealProblem, self).__init__(*args, **kwargs)
 
-    def get_constrained_dataset(self, n_points):
+    def get_constrained_dataset(self, n_points, query_obj):
         x = np.zeros((n_points, self.input_shape))
         n_points_boundaries = n_points // 2
         for p in range(n_points_boundaries):
@@ -41,6 +41,9 @@ class ConvexRealProblem(BaseProblem):
             df = pd.DataFrame([p0, [np.nan]*self.input_shape, p1], index=[0, step, 1])
             df = df.interpolate(method="index")
             x[p] = df.iloc[1].values
+
+        if not query_obj:
+            return x
 
         # eval fun
         y = np.zeros((n_points))

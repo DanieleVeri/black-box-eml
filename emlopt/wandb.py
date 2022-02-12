@@ -2,7 +2,6 @@ import pickle
 import numpy as np
 import wandb
 
-from .utils import is_plot_visible
 from .search_loop import SearchLoop
 
 
@@ -50,7 +49,7 @@ class WandbContext:
         wandb.log(obj, commit=False)
 
     def on_end_iteration(self, obj={}):
-        if is_plot_visible() and self.search.verbosity == 2:
+        if self.search.verbosity == 2:
             wandb.log({"train_loss": wandb.Image('train_loss.png')}, commit=False)
             if self.search.problem.input_shape <= 2:
                 wandb.log({"train_predictions": wandb.Image('chart.png')}, commit=False)

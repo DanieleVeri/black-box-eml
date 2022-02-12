@@ -2,7 +2,7 @@ import logging
 import sys
 from matplotlib.ticker import Formatter
 import numpy as np
-from .utils import is_plot_visible, set_seed, timer
+from .utils import set_seed, timer
 from .problem import BaseProblem
 from .solvers import BaseMILP
 from .surrogates import BaseSurrogate
@@ -49,7 +49,7 @@ class SearchLoop:
     def step(self, iteration):
         learned_model, surrogate_runtime = self.surrogate_model.fit_surrogate(self.samples_x, self.samples_y, timer_logger=self.logger)
 
-        if self.logger.level == logging.DEBUG and is_plot_visible():
+        if self.logger.level == logging.DEBUG:
             self.surrogate_model.plot_loss()
             self.surrogate_model.plot_predictions(learned_model, self.samples_x, self.samples_y)
 

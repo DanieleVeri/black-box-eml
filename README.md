@@ -1,5 +1,2 @@
-todo:
-- test early stop
-- test augment
-- milpdist
-- incremental
+incremental dist
+plots

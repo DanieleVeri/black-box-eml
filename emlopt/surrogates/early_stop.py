@@ -12,7 +12,7 @@ class EarlyStop(BaseSurrogate):
         self.num_val_points = self.cfg['num_val_points']
         self.patience = self.cfg['patience']
 
-        self.x_val, self.y_val = self.init_validation_set(timer_logger=self.logger)
+        (self.x_val, self.y_val), _ = self.init_validation_set(timer_logger=self.logger)
 
         self.cb = [tf.keras.callbacks.EarlyStopping(
             monitor="val_loss", patience=self.patience, restore_best_weights=True)]
@@ -28,7 +28,7 @@ class EarlyStop(BaseSurrogate):
         norm_y = min_max_scale_out(y, y)
 
         val_x = min_max_scale_in(self.x_val, np.array(self.problem.input_bounds))
-        val_y = min_max_scale_in(self.y_val, y)
+        val_y = min_max_scale_out(self.y_val, y)
 
         hstory = keras_mdl.fit(norm_x, norm_y, 
             validation_data=(val_x, val_y),

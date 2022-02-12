@@ -5,7 +5,7 @@ import tensorflow_addons as tfa
 import matplotlib.pyplot as plt
 
 from ..tfp import build_probabilistic_regressor, dlambda_likelihood
-from ..utils import min_max_scale_in, min_max_restore_out, timer
+from ..utils import is_plot_visible, min_max_scale_in, min_max_restore_out, timer
 from ..problem import BaseProblem
 
 
@@ -46,7 +46,8 @@ class BaseSurrogate:
     def plot_loss(self):
         plt.plot(self.loss_history.history["loss"])
         plt.savefig('train_loss.png')
-        plt.show()
+        if is_plot_visible(): plt.show()
+        else: plt.close()
 
     def plot_predictions(self, keras_mdl, samples_x, samples_y):
         if self.problem.input_shape <= 2:
@@ -72,7 +73,8 @@ class BaseSurrogate:
             plt.scatter(samples_x, samples_y, c="orange")
             plt.legend(["GT", "predicted mean", "predicted CI", "samples"])
             plt.savefig('chart.png')
-            plt.show()
+            if is_plot_visible(): plt.show()
+            else: plt.close()
 
         # 2D domain
         elif self.problem.input_shape == 2:   
@@ -89,7 +91,8 @@ class BaseSurrogate:
             ax.view_init(elev=15, azim=60)
             plt.legend(["samples", "GT", "predicted mean", "predicted CI"])
             plt.savefig('chart.png')
-            plt.show()
+            if is_plot_visible(): plt.show()
+            else: plt.close()
 
         else:
             self.logger.debug("Plot not available for high dimensional domains.")

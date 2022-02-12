@@ -8,10 +8,10 @@ from ..eml import parse_tfp, propagate_bound, embed_model, pwl_exp
 from ..utils import min_max_scale_in
 
 
-class IncrementalDist(BaseMILP):
+class DynamicLambdaDist(BaseMILP):
 
     def __init__(self, *args, **kwargs):
-        super(IncrementalDist, self).__init__(*args, **kwargs)
+        super(DynamicLambdaDist, self).__init__(*args, **kwargs)
         self.lambda_ucb = self.cfg['lambda_ucb']
 
     def solve(self, keras_model, samples_x, samples_y):
@@ -63,6 +63,29 @@ class IncrementalDist(BaseMILP):
         for current_sample_dist in sample_distance_list:
             cplex_model.add_constraint(current_sample_dist >= min_dist, "min dist")
 
+        # Speedup constraint 1: every abs() binary state must be ge than successors (sorted points)
+        # for feature in range(bin_vars.shape[1]):
+        #     order = np.argsort(scaled_x_samples[:, feature])
+        #     for i in range(len(order)):
+        #         for j in range(i, len(order)):
+        #             cplex_model.add_constraint(bin_vars[order[i], feature] >= bin_vars[order[j], feature])
+       
+        # Speedup constraint 2: max 1 adiacent switch
+        # for feature in range(bin_vars.shape[1]):
+        #     order = np.argsort(scaled_x_samples[:, feature])
+        #     summa = (1 >= bin_vars[order[0], feature]+1)
+        #     for i in range(len(order)-1):
+        #         summa += (bin_vars[order[i], feature] >= bin_vars[order[i+1], feature]+1)
+        #     summa += (bin_vars[order[-1], feature] >= 1)
+        #     cplex_model.add_constraint(summa == 1)
+            
+        # Speedup constraint 3: triangular ineq next only
+        # for id_xy in range(len(sample_distance_list)-1):
+        #     s_xy = sample_distance_list[id_xy]
+        #     id_xz = id_xy+1
+        #     s_xz = sample_distance_list[id_xz]
+        #     sample_distance = np.sum(np.abs(scaled_x_samples[id_xy] - scaled_x_samples[id_xz]))
+        #     cplex_model.add_constraint(s_xy <= s_xz + sample_distance, "traingular inequality")
 
         # UCB Objective
         ucb = -yvars[0] + \

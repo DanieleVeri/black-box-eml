@@ -8,7 +8,7 @@ class IntegerProblem(BaseProblem):
         super(IntegerProblem, self).__init__(*args, **kwargs)
         self.max_retry = 1
 
-    def get_dataset(self, n_points):
+    def get_dataset(self, n_points, query_obj):
         x = np.zeros((n_points, self.input_shape))              
         num_points = 0
         infeasibilities = 0
@@ -50,6 +50,9 @@ class IntegerProblem(BaseProblem):
             if num_points == n_points: break
             if infeasibilities == n_points*self.max_retry:
                 raise Exception("Number of infeasibilities excedeed.")
+
+        if not query_obj:
+            return x
 
         # eval fun
         y = np.zeros((n_points))

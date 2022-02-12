@@ -15,13 +15,13 @@ class BaseProblem:
     def get_constrained_dataset(self, n_points):
         raise NotImplementedError
 
-    def get_dataset(self, n_points):
+    def get_dataset(self, n_points, query_obj=True):
         if self.constraint_cb is None:
-            return self.get_unconstrained_dataset(n_points)
+            return self.get_unconstrained_dataset(n_points, query_obj)
         else:
-            return self.get_constrained_dataset(n_points)
+            return self.get_constrained_dataset(n_points, query_obj)
 
-    def get_grid(self, n_points):
+    def get_grid(self, n_points, query_obj=True):
         x_list = []
         for i, b in enumerate(self.input_bounds):
             lb = b[0]
@@ -31,12 +31,14 @@ class BaseProblem:
             else:
                 x_list.append(np.arange(lb, ub, (ub-lb)/n_points))
         x = np.array(np.meshgrid(*x_list)).reshape(self.input_shape,-1).T
+        if not query_obj:
+            return x
         y = np.zeros((x.shape[0]))
         for i in range(x.shape[0]):
             y[i] = self.fun(x[i, :])
         return x, y
 
-    def get_unconstrained_dataset(self, n_points):
+    def get_unconstrained_dataset(self, n_points, query_obj):
         x = np.random.rand(n_points, self.input_shape)
         for i, b in enumerate(self.input_bounds):
             lb = b[0]
@@ -46,6 +48,8 @@ class BaseProblem:
             else:
                 x[:,i] *= ub - lb
                 x[:,i] += lb
+        if not query_obj:
+            return x
         y = np.zeros((n_points))
         for i in range(n_points):
             y[i] = self.fun(x[i, :])
