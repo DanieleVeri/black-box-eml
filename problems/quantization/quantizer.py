@@ -81,7 +81,7 @@ class QScheme(default_8bit_quantize_scheme.Default8BitQuantizeScheme):
     def get_quantize_registry(self):
         return QReg(self.bitlist)
 
-def download_pretrained_model() -> tf.Model:
+def download_pretrained_model():
     os.system("mkdir pretrained_resnet18")
     os.system("mkdir pretrained_resnet18/variables")
     os.system("wget https://api.wandb.ai/artifactsV2/gcp-us/veri/QXJ0aWZhY3Q6NTU2NTg0NjE=/d9d4d8f866df84014e528bb3c5617816 -O  pretrained_resnet18/variables/variables.data-00000-of-00001")

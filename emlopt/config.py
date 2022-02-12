@@ -6,7 +6,7 @@ DEFAULT = {
     "verbosity": 2,
 
     "iterations": 100,
-    "starting_points": 100,
+    "starting_points": 10,
 
     "surrogate_model": {
         "type": StopCI,

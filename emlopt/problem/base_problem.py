@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class BaseProblem:
 
     def __init__(self, name, fun, input_type, input_bounds, constraint_cb=None, stocasthic=False):

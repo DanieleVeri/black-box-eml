@@ -1,6 +1,8 @@
 import logging
+import sys
+from matplotlib.ticker import Formatter
 import numpy as np
-from .utils import set_seed, timer
+from .utils import is_plot_visible, set_seed, timer
 from .problem import BaseProblem
 from .solvers import BaseMILP
 from .surrogates import BaseSurrogate
@@ -30,14 +32,14 @@ class SearchLoop:
 
     def init_logging(self):
         logger = logging.getLogger('emlopt')
+        stream = logging.StreamHandler(sys.stdout)
+        stream.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        logger.addHandler(stream)
         if self.verbosity == 0:
-            logging.basicConfig(level=logging.ERROR)
             logger.setLevel(logging.ERROR)
         elif self.verbosity == 1:
-            logging.basicConfig(level=logging.INFO)
             logger.setLevel(logging.INFO)
         elif self.verbosity == 2:
-            logging.basicConfig(level=logging.DEBUG)
             logger.setLevel(logging.DEBUG)
         else: 
             raise AttributeError(f"verbosity = {self.verbosity}")
@@ -45,13 +47,13 @@ class SearchLoop:
 
     @timer
     def step(self, iteration):
-        learned_model, surrogate_runtime = self.surrogate_model.fit_surrogate(self.samples_x, self.samples_y)
+        learned_model, surrogate_runtime = self.surrogate_model.fit_surrogate(self.samples_x, self.samples_y, timer_logger=self.logger)
 
-        if self.logger.level == logging.DEBUG:
+        if self.logger.level == logging.DEBUG and is_plot_visible():
             self.surrogate_model.plot_loss()
             self.surrogate_model.plot_predictions(learned_model, self.samples_x, self.samples_y)
 
-        opt_x, milp_runtime = self.milp_model.optimize_acquisition_function(learned_model, self.samples_x, self.samples_y)
+        opt_x, milp_runtime = self.milp_model.optimize_acquisition_function(learned_model, self.samples_x, self.samples_y, timer_logger=self.logger)
 
         # check if repeated data point and query obj function
         opt_y: float 
@@ -76,7 +78,7 @@ class SearchLoop:
 
         self.logger.info(f"Iteration {iteration} objective value: {opt_y}")
         if self.iteration_callback is not None:
-            self.iteration_callback({
+            self.iteration_callback({ 
                 "x": opt_x,
                 "y": opt_y,
                 "surrogate_runtime": surrogate_runtime,
@@ -85,7 +87,7 @@ class SearchLoop:
 
     def run(self):
         try:
-            (self.samples_x, self.samples_y), _ = self.init_dataset()
+            (self.samples_x, self.samples_y), _ = self.init_dataset(timer_logger=self.logger)
             if self.init_dataset_callback is not None:
                 self.init_dataset_callback()
         except Exception as e:
@@ -94,7 +96,7 @@ class SearchLoop:
 
         try:
             for iteration in range(self.iterations):
-                self.step(iteration)
+                self.step(iteration, timer_logger=self.logger)
 
         except Exception as e:
             self.logger.error(f"Interrupted search due to exception\n{e}")

@@ -4,10 +4,10 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 import matplotlib.pyplot as plt
 
-
 from ..tfp import build_probabilistic_regressor, dlambda_likelihood
 from ..utils import min_max_scale_in, min_max_restore_out, timer
 from ..problem import BaseProblem
+
 
 class BaseSurrogate:
 

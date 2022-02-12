@@ -1,28 +1,17 @@
 import numpy as np
 import docplex.mp.model as cpx
-from skopt.sampler import Lhs
-from skopt.space import Space
 from .base_problem import BaseProblem
 
 class IntegerProblem(BaseProblem):
 
     def __init__(self, *args, **kwargs):
         super(IntegerProblem, self).__init__(*args, **kwargs)
+        self.max_retry = 1
 
     def get_dataset(self, n_points):
-        x = np.zeros((n_points, self.input_shape))
-        bounds = []
-        for i, b in enumerate(self.input_bounds):
-            if self.input_type[i] == "int":
-                bounds.append((int(b[0]), int(b[1])))
-            else:
-                bounds.append((float(b[0]), float(b[1])))
-                
-        space = Space(bounds)
-        lhs = Lhs(lhs_type="classic", criterion=None, iterations=1000)
-        lhs_samples = lhs.generate(space.dimensions, n_points)
-
-        p = 0
+        x = np.zeros((n_points, self.input_shape))              
+        num_points = 0
+        infeasibilities = 0
         while True:
             cplex = cpx.Model()
             xvars = []
@@ -32,32 +21,35 @@ class IntegerProblem(BaseProblem):
                 else:
                     xvars.append(cplex.continuous_var(lb=b[0], ub=b[1], name="x"+str(i)))
             
-            csts = self.constraint_cb(cplex, xvars)
+            csts = self.constraint_cb(xvars)
             # create restricted problem
+            restriction = 0 if num_points < n_points//2 else np.random.uniform()
             for pc in csts:
                 if pc[0].sense.value == 1: # <=
-                    pc[0].right_expr -= np.random.uniform()*pc[0].right_expr
+                    pc[0].right_expr -= restriction*pc[0].right_expr
                 elif pc[0].sense.value == 3: # >=
-                    pc[0].right_expr += np.random.uniform()*pc[0].right_expr
+                    pc[0].right_expr += restriction*pc[0].right_expr
                 cplex.add_constraint(*pc)
 
-            ## quadratic random objective (boundaries)
+            # linear random objective
             obj = 0
             for i, var in enumerate(xvars):
-                obj += (var-lhs_samples[p][i]) ** 2
+                obj += var * (np.random.uniform()*2-1)
             cplex.set_objective("min", obj)
             
             # solve
             cplex.set_time_limit(30)
             sol = cplex.solve()
             if sol is None:
-                print("infeasible")
+                infeasibilities+=1
                 continue
             for i in range(self.input_shape):
-                x[p, i] = sol["x"+str(i)]
+                x[num_points, i] = sol["x"+str(i)]
 
-            p += 1
-            if p == n_points: break
+            num_points += 1
+            if num_points == n_points: break
+            if infeasibilities == n_points*self.max_retry:
+                raise Exception("Number of infeasibilities excedeed.")
 
         # eval fun
         y = np.zeros((n_points))

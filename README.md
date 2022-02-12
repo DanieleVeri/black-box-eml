@@ -1,3 +1,5 @@
 todo:
-- remove print integer init
-- separate quadratic from init
+- test early stop
+- test augment
+- milpdist
+- incremental

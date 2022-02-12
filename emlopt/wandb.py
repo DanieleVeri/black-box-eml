@@ -2,10 +2,11 @@ import pickle
 import numpy as np
 import wandb
 
+from .utils import is_plot_visible
 from .search_loop import SearchLoop
 
 
-class WandbExperiment:
+class WandbContext:
 
     @staticmethod
     def get_defatult_cfg():
@@ -48,13 +49,12 @@ class WandbExperiment:
     def on_solution(self, obj={}):
         wandb.log(obj, commit=False)
 
-    def on_end_iteration(self, obj={}):     
-        if self.search.problem.input_shape <= 2:
-            wandb.log({"train_predictions": wandb.Image('chart.png')}, commit=False)
-        wandb.log({
-            "train_loss": wandb.Image('train_loss.png'),
-            "y_min": np.min(self.search.samples_y)
-        }, commit=False)
+    def on_end_iteration(self, obj={}):
+        if is_plot_visible() and self.search.verbosity == 2:
+            wandb.log({"train_loss": wandb.Image('train_loss.png')}, commit=False)
+            if self.search.problem.input_shape <= 2:
+                wandb.log({"train_predictions": wandb.Image('chart.png')}, commit=False)
+        wandb.log({"y_min": np.min(self.search.samples_y)}, commit=False)
         wandb.log(obj)
 
     def save_points(self):

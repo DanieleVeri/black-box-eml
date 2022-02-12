@@ -29,7 +29,7 @@ class IncrementalDist(BaseMILP):
             current_lambda = k_lip * ((1-self.current_iteration/self.iterations)**2)
 
         parsed_mdl = parse_tfp(keras_model)
-        parsed_mdl, _ = propagate_bound(bkd, parsed_mdl, self.problem.input_shape)
+        parsed_mdl, _ = propagate_bound(bkd, parsed_mdl, self.problem.input_shape, timer_logger=self.logger)
         xvars, scaled_xvars, yvars = embed_model(bkd, cplex_model, 
             parsed_mdl, self.problem.input_type, self.problem.input_bounds)
 

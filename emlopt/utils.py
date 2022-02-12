@@ -7,11 +7,11 @@ import numpy as np
 import tensorflow as tf
 
 
-logger = logging.getLogger('emlopt')
 def timer(func):
     """Print the runtime of the decorated function"""
     @functools.wraps(func)
     def wrapper_timer(*args, **kwargs):
+        logger = kwargs.pop('timer_logger')
         logger.debug(f"Started {func.__name__!r}")
         start_time = time.perf_counter()   
         value = func(*args, **kwargs)
@@ -26,6 +26,16 @@ def set_seed(seed: int=42):
     np.random.seed(seed)
     random.seed(seed)
     tf.compat.v1.set_random_seed(seed)
+
+def is_plot_visible():
+    is_x_server = 'DISPLAY' in os.environ
+    try:
+        is_jupyter = 'ipykernel' in str(get_ipython())
+        is_colab = 'google.colab' in str(get_ipython())
+        is_notebook = is_jupyter or is_colab
+    except:
+        is_notebook = False
+    return is_x_server or is_notebook
 
 def min_max_scale_in(values: np.array, bounds: np.array) -> np.array:
     return (values-bounds[:, 0]) / (bounds[:, 1]-bounds[:, 0])
