@@ -13,7 +13,7 @@ problem = build_problem("test", tpc_obj, ["int"]*41, [[2, 8]]*41, constraint_max
 search = SearchLoop(problem, DEFAULT)
 
 wandb_cfg = WandbContext.get_defatult_cfg()
-wandb_cfg['experiment_name'] = "navajo joe"
+wandb_cfg['experiment_name'] = "TPC"
 
 with WandbContext(wandb_cfg, search):
     search.run()

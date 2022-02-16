@@ -26,6 +26,9 @@ def set_seed(seed: int=42):
     np.random.seed(seed)
     random.seed(seed)
     tf.compat.v1.set_random_seed(seed)
+    session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
+    tf.compat.v1.keras.backend.set_session(sess)
 
 def is_plot_visible():
     is_x_server = 'DISPLAY' in os.environ

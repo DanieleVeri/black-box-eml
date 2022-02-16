@@ -45,7 +45,7 @@ def embed_model(bkd, cplex, parsed_model, vtype, bounds):
             xvars.append(cplex.integer_var(lb=b[0], ub=b[1], name="x"+str(i)))
         else:
             xvars.append(cplex.continuous_var(lb=b[0], ub=b[1], name="x"+str(i)))
-        # NN normalized input
+        # NN scaled input
         norm_xvars.append(cplex.continuous_var(lb=0, ub=1, name="norm_x"+str(i)))
         cplex.add_constraint(norm_xvars[-1] * (b[1] - b[0]) == xvars[-1] - b[0])
 

@@ -51,8 +51,11 @@ class BaseMILP:
         cplex_model.parameters.parallel = 1
         cplex_model.parameters.randomseed = 42
 
-    def extract_solution(self, solution):
+    def extract_solution(self, solution, scaled=False):
         opt_x = np.zeros(self.problem.input_shape)
         for i in range(self.problem.input_shape):
-            opt_x[i] = solution["x"+str(i)]
+            if scaled:
+                opt_x[i] = solution["norm_x"+str(i)]
+            else:
+                opt_x[i] = solution["x"+str(i)]
         return opt_x

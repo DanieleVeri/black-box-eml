@@ -12,7 +12,7 @@ problem = build_problem("mccormick_2d", objective, ['real', 'real'], [[-1.5, 4],
 search = SearchLoop(problem, EARLY_STOP)
 
 wandb_cfg = WandbContext.get_defatult_cfg()
-wandb_cfg['experiment_name'] = "navajo joe"
+wandb_cfg['experiment_name'] = "plots"
 
 with WandbContext(wandb_cfg, search):
     search.run()

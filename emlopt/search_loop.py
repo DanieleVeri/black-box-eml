@@ -26,7 +26,6 @@ class SearchLoop:
 
     @timer
     def init_dataset(self):
-        set_seed()
         generated_x, generated_y = self.problem.get_dataset(self.starting_points)
         return generated_x, generated_y
 
@@ -86,6 +85,7 @@ class SearchLoop:
             })
 
     def run(self):
+        set_seed()
         try:
             (self.samples_x, self.samples_y), _ = self.init_dataset(timer_logger=self.logger)
             if self.init_dataset_callback is not None:
