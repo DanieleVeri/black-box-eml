@@ -33,7 +33,7 @@ class IncrementalDist(BaseMILP):
         selection = np.random.choice(list(range(scaled_x_samples.shape[0])), INIT_POINTS, replace=False)
         selection = scaled_x_samples[selection]
         while True:
-            print("SSSEELLLLEEE",selection)
+            self.logger.debug(f"Incremental selection: {selection}")
             cplex_model = cpx.Model()
 
             xvars, scaled_xvars, yvars = embed_model(bkd, cplex_model, 
@@ -87,7 +87,6 @@ class IncrementalDist(BaseMILP):
             if solution is None:
                 raise Exception("Not feasible")
 
-
             opt_x = self.extract_solution(solution, scaled=True)
             dists = np.sum(np.abs(opt_x - scaled_x_samples), axis=1)
             tot_min_dist, tot_argmin_dist = np.min(dists), np.argmin(dists)
@@ -96,7 +95,7 @@ class IncrementalDist(BaseMILP):
                 sel_min_dist = np.min(dists_sel)
             else:
                 sel_min_dist = np.inf
-                
+            self.logger.debug(f"Tot min dist: {tot_min_dist}, selection min dist: {sel_min_dist}")
             if tot_min_dist < sel_min_dist:
                 partial_samples_terations += 1
                 selection = np.concatenate((selection, np.expand_dims(scaled_x_samples[tot_argmin_dist], 0)))

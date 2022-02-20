@@ -85,6 +85,7 @@ class SearchLoop:
             })
 
     def run(self):
+        self.logger.info(f"Started search with parameters: {self.cfg}")
         set_seed()
         try:
             (self.samples_x, self.samples_y), _ = self.init_dataset(timer_logger=self.logger)

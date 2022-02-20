@@ -21,15 +21,15 @@ DEFAULT = {
     "milp_model": {
         "type": solvers.DynamicLambdaDist,
         "lambda_ucb": 1,
-        "solver_timeout": 600,
+        "solver_timeout": 120,
     }
 }
 
 INCREMENTAL_TEST = {
     "verbosity": 2,
 
-    "iterations": 100,
-    "starting_points": 100,
+    "iterations": 200,
+    "starting_points": 10,
 
     "surrogate_model": {
         "type": surrogates.StopCI,
@@ -44,7 +44,7 @@ INCREMENTAL_TEST = {
 
     "milp_model": {
         "type": solvers.IncrementalDist,
-        "lambda_ucb": 1,
+        "lambda_ucb": 10,
         "solver_timeout": 60,
     }
 }

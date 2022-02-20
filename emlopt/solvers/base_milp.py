@@ -46,8 +46,9 @@ class BaseMILP:
         sys.stdout = box
     
     def cplex_deterministic(self, cplex_model):
-        # cplex.parameters.dettimelimit = self.solver_timeout * 1e3
-        # cplex.parameters.tune.dettimelimit = self.solver_timeout * 1e3
+        # cplex_model.parameters.dettimelimit = self.solver_timeout * 1e3
+        # cplex_model.parameters.tune.dettimelimit = self.solver_timeout * 1e3
+        # cplex_model.parameters.threads = 1
         cplex_model.parameters.parallel = 1
         cplex_model.parameters.randomseed = 42
 

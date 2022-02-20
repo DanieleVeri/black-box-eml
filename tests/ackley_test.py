@@ -12,7 +12,7 @@ problem = build_problem("ackley_10d_cst", *build_ackley(10), constraint_scbo)
 search = SearchLoop(problem, INCREMENTAL_TEST)
 
 wandb_cfg = WandbContext.get_defatult_cfg()
-wandb_cfg['experiment_name'] = "inc"
+wandb_cfg['experiment_name'] = "INCREMENTAL"
 
 with WandbContext(wandb_cfg, search):
     search.run()
