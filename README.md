@@ -1,39 +1,26 @@
---------------------comparison abs methods
---------------------FAR FUNZIONARE ALMENO UN RELATED WORK
---------------------TEST FN PLOTS
+--------------------FAR FUNZIONARE ALMENO UN RELATED WORK - spearmint subprocess
 --------------------ACKLEY10 PLOTS [DECAY,LNS,INCREMENTAL,VANILLA]
 --------------------TPC PLOTS [DECAY,LNS,INCREMENTAL,VANILLA]
+--------------------comparison abs methods
 
--finire eml
-
--parentesi su milp solvers
-
--tfp plot
--tf puo essere deterministic
--pwl exp approximation error
--muovere e rifare learning theory alla fine del 2
-
--early stop vs stop ci all test function
--sample vs embed dist all test function
 
 -triangular ineq + binary constraint + incremental dist magari con cplex log e piangere il non determinismo
 
 -ucb lambda klipscith
-
 -initial samplig motivare meglio sampling
-
+_______________________
+ 
 -experment intro
 -beta decay
-
 -lns
 
 -ackley10d piccola intro e refactor, magari mostrare piu runs
-
 -tpc: quantization intro
--related work comparison
+
+-related work
+-related work comparison tpc
 
 -conclusions
+-parentesi su milp solvers ?
 
--gloal refactor
-
--style refactor
+-finalization

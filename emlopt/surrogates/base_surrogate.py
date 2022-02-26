@@ -68,10 +68,9 @@ class BaseSurrogate:
             x = np.squeeze(x)
             plt.plot(x, y, c="grey")
             plt.plot(x, pred)
-            plt.fill_between(x, pred-std_pred, pred+std_pred,
-                alpha=0.3, color='tab:blue', label='+/- std')
+            plt.fill_between(x, pred-std_pred, pred+std_pred, alpha=0.3, color='tab:blue', label='+/- std')
             plt.scatter(samples_x, samples_y, c="orange")
-            plt.legend(["GT", "predicted mean", "predicted CI", "samples"])
+            plt.legend(["GT", "predicted mean", "predicted CI", "samples"], prop={'size': 14})
             plt.savefig('chart.png')
             if is_plot_visible(): plt.show()
             else: plt.close()
@@ -84,12 +83,10 @@ class BaseSurrogate:
                 samples_x[:, 0], samples_x[:, 1], samples_y, color="orange")
             ax.scatter(x[:, 0], x[:, 1], y, alpha=0.15, color="lightgrey")
             ax.scatter(x[:, 0], x[:, 1], pred, alpha=0.3)
-            ax.scatter(x[:, 0], x[:, 1], pred-std_pred,
-                alpha=0.3, color="lightblue")
-            ax.scatter(x[:, 0], x[:, 1], pred+std_pred,
-                alpha=0.3, color="lightblue")
+            ax.scatter(x[:, 0], x[:, 1], pred-std_pred, alpha=0.3, color="lightblue")
+            ax.scatter(x[:, 0], x[:, 1], pred+std_pred, alpha=0.3, color="lightblue")
             ax.view_init(elev=15, azim=60)
-            plt.legend(["samples", "GT", "predicted mean", "predicted CI"])
+            plt.legend(["samples", "GT", "predicted mean", "predicted CI"], prop={'size': 14})
             plt.savefig('chart.png')
             if is_plot_visible(): plt.show()
             else: plt.close()

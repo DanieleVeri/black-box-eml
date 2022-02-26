@@ -50,7 +50,7 @@ def embed_model(bkd, cplex, parsed_model, vtype, bounds):
         cplex.add_constraint(norm_xvars[-1] * (b[1] - b[0]) == xvars[-1] - b[0])
 
     yvars = [cplex.continuous_var(lb=mean_lb, ub=mean_ub, name="out_mean"), 
-            cplex.continuous_var(lb=std_lb, ub=std_ub, name="out_std")]
+        cplex.continuous_var(lb=std_lb, ub=std_ub, name="out_std")]
 
     embed.encode(bkd, parsed_model, cplex, norm_xvars, yvars, 'nn')
     return xvars, norm_xvars, yvars
