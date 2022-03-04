@@ -6,9 +6,9 @@ class IntegerProblem(BaseProblem):
 
     def __init__(self, *args, **kwargs):
         super(IntegerProblem, self).__init__(*args, **kwargs)
-        self.max_retry = 1
+        self.max_retry = 10
 
-    def get_dataset(self, n_points, query_obj):
+    def get_constrained_dataset(self, n_points, query_obj):
         x = np.zeros((n_points, self.input_shape))              
         num_points = 0
         infeasibilities = 0
@@ -21,14 +21,15 @@ class IntegerProblem(BaseProblem):
                 else:
                     xvars.append(cplex.continuous_var(lb=b[0], ub=b[1], name="x"+str(i)))
             
-            csts = self.constraint_cb(xvars)
+            csts = self.constraint_cb(cplex, xvars)
             # create restricted problem
             restriction = 0 if num_points < n_points//2 else np.random.uniform()
             for pc in csts:
-                if pc[0].sense.value == 1: # <=
-                    pc[0].right_expr -= restriction*pc[0].right_expr
-                elif pc[0].sense.value == 3: # >=
-                    pc[0].right_expr += restriction*pc[0].right_expr
+                if not pc[0].right_expr.equals(0):
+                    if pc[0].sense.value == 1: # <=
+                        pc[0].right_expr -= restriction*pc[0].right_expr
+                    elif pc[0].sense.value == 3: # >=
+                        pc[0].right_expr += restriction*pc[0].right_expr
                 cplex.add_constraint(*pc)
 
             # linear random objective

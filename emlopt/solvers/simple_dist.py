@@ -26,7 +26,7 @@ class SimpleDist(BaseMILP):
             parsed_mdl, self.problem.input_type, self.problem.input_bounds)
 
         if self.problem.constraint_cb is not None:
-            csts = self.problem.constraint_cb(xvars)
+            csts = self.problem.constraint_cb(cplex_model, xvars)
             for pc in csts:
                 cplex_model.add_constraint(*pc)
 

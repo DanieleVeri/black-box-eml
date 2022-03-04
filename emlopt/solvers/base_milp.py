@@ -6,11 +6,12 @@ from ..utils import timer
 
 class BaseMILP:
 
-    def __init__(self, problem, milp_cfg, logger):
+    def __init__(self, problem, milp_cfg, iterations, logger):
         self.problem: BaseProblem = problem
         self.cfg = milp_cfg
         self.logger = logger
         self.solver_timeout: int = milp_cfg['solver_timeout']
+        self.iterations = iterations
         self.current_iteration = 0
         self.not_improve_iteration = 0
         self.solution_callback = None

@@ -34,5 +34,5 @@ def build_tpc():
         return -q_aware_model_accuracy
     return tpc
 
-def constraint_max_bits(xvars):
-    return [[sum(xvars) <= len(xvars)*2.5, 'cst_size']]
+def constraint_max_bits(cplex, xvars):
+    return [[sum(xvars) <= len(xvars)*4, 'cst_size']]

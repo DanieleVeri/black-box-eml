@@ -35,9 +35,9 @@ CONFIG = {
     }
 }
 
-# search = SearchLoop(problem, CONFIG)
-# wandb_cfg['experiment_name'] = "VANILLA"
-# with WandbContext(wandb_cfg, search): search.run()
+search = SearchLoop(problem, CONFIG)
+wandb_cfg['experiment_name'] = "VANILLA"
+with WandbContext(wandb_cfg, search): search.run()
 
 CONFIG["milp_model"]["type"]= solvers.IncrementalDist
 

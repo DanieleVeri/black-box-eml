@@ -20,7 +20,7 @@ class SearchLoop:
         surrogate_calss = cfg['surrogate_model']['type']
         milp_calss = cfg['milp_model']['type']
         self.surrogate_model: BaseSurrogate = surrogate_calss(problem, cfg['surrogate_model'], self.logger)
-        self.milp_model: BaseMILP = milp_calss(problem, cfg['milp_model'], self.logger)
+        self.milp_model: BaseMILP = milp_calss(problem, cfg['milp_model'], self.iterations, self.logger)
         self.init_dataset_callback = None
         self.iteration_callback = None
 

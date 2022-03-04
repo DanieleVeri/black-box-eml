@@ -16,7 +16,7 @@ def build_ackley(dim):
     bounds = [[-5, 10]]*dim
     return f, vtypes, bounds
 
-def constraint_scbo(xvars):
+def constraint_scbo(cplex, xvars):
     r = 5
     acc1 = 0
     for xi in xvars:

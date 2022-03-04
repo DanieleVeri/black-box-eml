@@ -17,7 +17,7 @@ class ConvexRealProblem(BaseProblem):
             for i,b in enumerate(self.input_bounds):
                 xvars.append(cplex.continuous_var(lb=b[0], ub=b[1], name="x"+str(i)))
             
-            csts = self.constraint_cb(xvars)
+            csts = self.constraint_cb(cplex, xvars)
             for pc in csts:
                 cplex.add_constraint(*pc)
 
