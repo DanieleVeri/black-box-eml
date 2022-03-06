@@ -21,13 +21,23 @@ class SearchLoop:
         milp_calss = cfg['milp_model']['type']
         self.surrogate_model: BaseSurrogate = surrogate_calss(problem, cfg['surrogate_model'], self.logger)
         self.milp_model: BaseMILP = milp_calss(problem, cfg['milp_model'], self.iterations, self.logger)
+        self.known_points = None
         self.init_dataset_callback = None
         self.iteration_callback = None
 
     @timer
     def init_dataset(self):
-        generated_x, generated_y = self.problem.get_dataset(self.starting_points)
-        return generated_x, generated_y
+        if self.starting_points > 0:
+            generated_x, generated_y = self.problem.get_dataset(self.starting_points)  
+            if self.known_points is None:
+                return generated_x, generated_y 
+            x = np.concatenate((self.known_points[0], generated_x))
+            y = np.append(self.known_points[1], generated_y)
+            return x,y
+        if self.starting_points == 0 and self.known_points is not None:
+            return self.known_points
+
+        raise Exception("Illegal initial points configuration. Please specify initial points and/or known points")
 
     def init_logging(self):
         logger = logging.getLogger('emlopt')

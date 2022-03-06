@@ -97,23 +97,25 @@ class IncrementalDist(BaseMILP):
                 sel_min_dist = np.inf
             self.logger.debug(f"Tot min dist: {tot_min_dist}, selection min dist: {sel_min_dist}")
             if tot_min_dist < sel_min_dist:
+                self.logger.debug(f"Adding closest point to the MILP model")
                 partial_samples_terations += 1
                 selection = np.concatenate((selection, np.expand_dims(scaled_x_samples[tot_argmin_dist], 0)))
             else:
+                self.logger.debug(f"No other closest point found")
                 break
 
-            solution_log = {
-                "ucb": solution.objective_value,
-                "norm_dist": solution['dist'],
-                "mean": solution['out_mean'],
-                "stddev": solution['exp_out'],
-                "exp_err": solution['exp_out'] - math.exp(solution['out_std']),
-                "lambda_ucb": current_lambda,
-                "partial_iterations": partial_samples_terations
-            }
-            self.logger.debug(f"MILP solution:\n{solution_log}")
-            if self.logger.level == logging.DEBUG:
-                solution.solve_details.print_information()
+        solution_log = {
+            "ucb": solution.objective_value,
+            "norm_dist": solution['dist'],
+            "mean": solution['out_mean'],
+            "stddev": solution['exp_out'],
+            "exp_err": solution['exp_out'] - math.exp(solution['out_std']),
+            "lambda_ucb": current_lambda,
+            "partial_iterations": partial_samples_terations
+        }
+        self.logger.debug(f"MILP solution:\n{solution_log}")
+        if self.logger.level == logging.DEBUG:
+            solution.solve_details.print_information()
 
         if self.solution_callback is not None:
             self.solution_callback(solution_log)
