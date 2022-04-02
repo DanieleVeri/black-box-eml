@@ -2,10 +2,10 @@ import math
 import numpy as np
 from scipy.stats import norm
 import tensorflow as tf
-from eml.net import embed
-from eml.net.reader import keras_reader
-from eml.net.process import fwd_bound_tighthening
-from eml.util import encode_pwl
+from .emllib.net import embed
+from .emllib.net.reader import keras_reader
+from .emllib.net.process import fwd_bound_tighthening
+from .emllib.util import encode_pwl
 from .utils import timer
 from .problem import BaseProblem
 
@@ -37,7 +37,6 @@ def embed_model(bkd, cplex, parsed_model, vtype, bounds):
     mean_ub = parsed_model.layer(-1).ub()[0]
     std_lb = parsed_model.layer(-1).lb()[1]
     std_ub = parsed_model.layer(-1).ub()[1]
-
     xvars = []
     norm_xvars = []
     for i,b in enumerate(bounds):

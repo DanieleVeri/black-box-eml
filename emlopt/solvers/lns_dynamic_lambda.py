@@ -3,7 +3,7 @@ import logging
 import math
 import numpy as np
 import docplex.mp.model as cpx
-from eml.backend import cplex_backend
+from  ..emllib.backend import cplex_backend
 from .base_milp import BaseMILP
 from ..eml import parse_tfp, propagate_bound, embed_model, pwl_exp
 from ..utils import min_max_scale_in

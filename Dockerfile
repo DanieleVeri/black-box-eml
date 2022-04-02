@@ -17,9 +17,6 @@ RUN pip install -r dependencies/requirements.txt \
     RISE jupyter_contrib_nbextensions tables tensorflow_probability
 RUN jupyter contrib nbextension install --system
 
-# eml
-RUN git clone https://github.com/DanieleVeri/emllib.git dependencies/emllib
-
 # cplex
 RUN mkdir dependencies/cplex
 RUN wget https://api.wandb.ai/artifactsV2/gcp-us/veri/QXJ0aWZhY3Q6MjU1ODAzMjI=/69b1b89a73a7d0931fbfdb355eb147c3 -O dependencies/cplex/cplex_studio1210.linux-x86-64.bin
