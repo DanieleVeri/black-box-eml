@@ -1,12 +1,10 @@
 FROM python:3.7
 
-COPY ./dependencies /app/dependencies
-COPY ./emlopt /app/emlopt
-COPY ./tests /app/tests
-COPY ./notebooks /app/notebooks
-COPY ./problems /app/problems
-
 WORKDIR /app
+
+RUN mkdir dependencies
+COPY ./launch_debug.sh /app/launch_debug.sh
+COPY ./requirements.txt /app/dependencies/requirements.txt
 
 RUN apt-get update -y && apt-get install zip -y
 RUN apt-get install wget git -y
@@ -16,6 +14,8 @@ RUN pip install --upgrade pip
 RUN pip install -r dependencies/requirements.txt \
     RISE jupyter_contrib_nbextensions tables tensorflow_probability
 RUN jupyter contrib nbextension install --system
+# debug 
+RUN pip install ptvsd
 
 # cplex
 RUN mkdir dependencies/cplex
@@ -26,6 +26,5 @@ RUN sh dependencies/cplex/cplex_studio1210.linux-x86-64.bin -f response.properti
 RUN python3 /opt/ibm/ILOG/CPLEX_Studio1210/python/setup.py install
 
 WORKDIR /app
-
 CMD ["jupyter", "notebook", "--port=8888", "--no-browser", \
     "--ip=0.0.0.0", "--allow-root", "--notebook-dir=notebooks"]
