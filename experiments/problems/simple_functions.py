@@ -21,3 +21,19 @@ def build_rosenbrock(rosenbrock_dim):
     vtypes = ["real"]*rosenbrock_dim
     bounds = [[-2, 2]]*rosenbrock_dim
     return f, vtypes, bounds
+
+def build_ackley(dim):
+    def f(x):
+        v1=0
+        for i in range(dim):
+            v1 += x[i]*x[i]
+        v1 = math.exp(-0.2*math.sqrt(v1/dim))
+        v2=0
+        for i in range(dim):
+            v2 += math.cos(2*math.pi*x[i])
+        v2 = math.exp(v2/dim)
+        return -20*v1-v2+20+math.e
+
+    vtypes = ["real"]*dim
+    bounds = [[-5, 10]]*dim
+    return f, vtypes, bounds

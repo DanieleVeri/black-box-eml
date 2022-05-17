@@ -32,7 +32,7 @@ class WandbContext:
             wandb.finish()
 
     def init_wandb(self, wandb_config: dict, search_config: dict):
-        if wandb_config['run_id'] is not None: 
+        if wandb_config['run_id'] is not None:
             wandb.init(project=wandb_config['project'], id=wandb_config['run_id'], resume='allow')
         else:
             wandb.init(project=wandb_config['project'], name=wandb_config['experiment_name'])
@@ -41,12 +41,12 @@ class WandbContext:
     def on_init(self, obj={}):
         for j in range(self.search.starting_points):
             wandb.log({
-                "x": self.search.samples_x[j], 
+                "x": self.search.samples_x[j],
                 "y": self.search.samples_y[j]
             })
 
-    def on_solution(self, obj={}):
-        wandb.log(obj, commit=False)
+    def on_solution(self, main_vars, all_vars):
+        wandb.log(main_vars, commit=False)
 
     def on_end_iteration(self, obj={}):
         if self.search.verbosity == 2:
@@ -67,4 +67,3 @@ class WandbContext:
         artifact = wandb.Artifact('datapoints', type='points')
         artifact.add_file("points.pkl")
         wandb.log_artifact(artifact)
-

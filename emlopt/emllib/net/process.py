@@ -199,7 +199,7 @@ def _neuron_bounds(bkd, desc, neuron, timelimit):
     # Solve the problem and extract the best bound
     res = bkd.solve(mdl, timelimit - ttime)
     # Extract the bound
-    if res['status'] == 'optimal':
+    if res['status'] == 'solved':
         lb = res['obj']
     else:
         lb = res['bound']

@@ -1,6 +1,3 @@
-from . import solvers, surrogates
-
-
 DEFAULT = {
     "verbosity": 2,
 
@@ -8,7 +5,7 @@ DEFAULT = {
     "starting_points": 100,
 
     "surrogate_model": {
-        "type": surrogates.StopCI,
+        "type": "stop_ci",
         "epochs": 999,
         "learning_rate": 5e-3,
         "weight_decay": 1e-4,
@@ -19,7 +16,8 @@ DEFAULT = {
     },
 
     "milp_model": {
-        "type": solvers.DynamicLambdaDist,
+        "type": "simple_dist",
+        "backend": "cplex",
         "lambda_ucb": 1,
         "solver_timeout": 120,
     }

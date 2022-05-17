@@ -2,7 +2,7 @@
 # Encode Piecewise Linear Function
 # ===========================================================================
 
-def encode_pwl(bkd, mdl, xvars, nodes, mode='sos2', name=None):
+def encode_pwl(bkd, mdl, xvars, nodes, mode='sos2', name=''):
     # Cache some fields
     nnodes = len(nodes[0])
     # Build node amount variables

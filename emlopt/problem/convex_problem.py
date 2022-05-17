@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import docplex.mp.model as cpx
+from ..emllib.backend import get_backend
 from .base_problem import BaseProblem
 
 class ConvexRealProblem(BaseProblem):
@@ -9,31 +9,31 @@ class ConvexRealProblem(BaseProblem):
         super(ConvexRealProblem, self).__init__(*args, **kwargs)
 
     def get_constrained_dataset(self, n_points, query_obj):
+        backend = get_backend(self.backend)
         x = np.zeros((n_points, self.input_shape))
         n_points_boundaries = n_points // 2
         for p in range(n_points_boundaries):
-            cplex = cpx.Model()
+            model = backend.new_model()
             xvars = []
             for i,b in enumerate(self.input_bounds):
-                xvars.append(cplex.continuous_var(lb=b[0], ub=b[1], name="x"+str(i)))
-            
-            csts = self.constraint_cb(cplex, xvars)
+                xvars.append(backend.var_cont(model, lb=b[0], ub=b[1], name="x"+str(i)))
+
+            csts = self.constraint_cb(backend, model, xvars)
             for pc in csts:
-                cplex.add_constraint(*pc)
+                backend.add_cst(model, *pc)
 
             # linear random objective
             obj = 0
             for var in xvars:
                 obj += var * (np.random.uniform()*2-1)
-            cplex.set_objective("max", obj)
-            
-            # solve
-            cplex.set_time_limit(30)
-            sol = cplex.solve()
-            for i in range(self.input_shape):
-                x[p, i] = sol["x"+str(i)]
+            backend.set_obj(model, "max", obj)
 
-        # interpolation  
+            # solve
+            solution = backend.solve(model, 30)
+            for i in range(self.input_shape):
+                x[p, i] = solution['vars']["x"+str(i)]
+
+        # interpolation
         for p in range(n_points_boundaries, n_points):
             pidx = np.random.choice(n_points_boundaries, 2, replace=False)
             p0, p1 = x[pidx[0]], x[pidx[1]]

@@ -1,5 +1,5 @@
 import numpy as np
-import docplex.mp.model as cpx
+from ..emllib.backend import get_backend
 from .base_problem import BaseProblem
 
 class IntegerProblem(BaseProblem):
@@ -9,19 +9,20 @@ class IntegerProblem(BaseProblem):
         self.max_retry = 10
 
     def get_constrained_dataset(self, n_points, query_obj):
-        x = np.zeros((n_points, self.input_shape))              
+        backend = get_backend(self.backend)
+        x = np.zeros((n_points, self.input_shape))
         num_points = 0
         infeasibilities = 0
         while True:
-            cplex = cpx.Model()
+            model = backend.new_model()
             xvars = []
             for i,b in enumerate(self.input_bounds):
                 if self.input_type[i] == "int":
-                    xvars.append(cplex.integer_var(lb=b[0], ub=b[1], name="x"+str(i)))
+                    xvars.append(backend.var_int(model, lb=b[0], ub=b[1], name="x"+str(i)))
                 else:
-                    xvars.append(cplex.continuous_var(lb=b[0], ub=b[1], name="x"+str(i)))
-            
-            csts = self.constraint_cb(cplex, xvars)
+                    xvars.append(backend.var_cont(model, lb=b[0], ub=b[1], name="x"+str(i)))
+
+            csts = self.constraint_cb(backend, model, xvars)
             # create restricted problem
             restriction = 0 if num_points < n_points//2 else np.random.uniform()
             for pc in csts:
@@ -30,22 +31,21 @@ class IntegerProblem(BaseProblem):
                         pc[0].right_expr -= restriction*pc[0].right_expr
                     elif pc[0].sense.value == 3: # >=
                         pc[0].right_expr += restriction*pc[0].right_expr
-                cplex.add_constraint(*pc)
+                backend.add_cst(model, *pc)
 
             # linear random objective
             obj = 0
             for i, var in enumerate(xvars):
                 obj += var * (np.random.uniform()*2-1)
-            cplex.set_objective("min", obj)
-            
+            backend.set_obj(model, "min", obj)
+
             # solve
-            cplex.set_time_limit(30)
-            sol = cplex.solve()
-            if sol is None:
+            solution = backend.solve(model, 30)
+            if solution['status'] == 'infeasible':
                 infeasibilities+=1
                 continue
             for i in range(self.input_shape):
-                x[num_points, i] = sol["x"+str(i)]
+                x[num_points, i] = solution['vars']["x"+str(i)]
 
             num_points += 1
             if num_points == n_points: break

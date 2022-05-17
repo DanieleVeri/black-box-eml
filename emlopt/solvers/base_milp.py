@@ -21,6 +21,7 @@ class BaseMILP:
 
     @timer
     def optimize_acquisition_function(self, keras_model, samples_x, sample_y):
+        self.logger.info(f"{self.__class__.__name__} solver:")
         return self.solve(keras_model, samples_x, sample_y)
 
     def compute_klip(self, x, y):
@@ -36,28 +37,11 @@ class BaseMILP:
         self.logger.debug(f"K-Lipschitz max: {k_lip} - 95° percentile: {np.percentile(qlist, 95, interpolation='linear')}")
         return k_lip
 
-    def cplex_extensive_log(self, cplex_model):
-        cplex_model.context.solver.verbose = 5
-        cplex_model.context.solver.log_output = True
-        cplex_model.print_information()
-        box = sys.stdout
-        sys.stdout = open('cplex_model.txt', 'w')
-        cplex_model.prettyprint()
-        sys.stdout.close()
-        sys.stdout = box
-    
-    def cplex_deterministic(self, cplex_model):
-        # cplex_model.parameters.dettimelimit = self.solver_timeout * 1e3
-        # cplex_model.parameters.tune.dettimelimit = self.solver_timeout * 1e3
-        # cplex_model.parameters.threads = 1
-        cplex_model.parameters.parallel = 1
-        cplex_model.parameters.randomseed = 42
-
-    def extract_solution(self, solution, scaled=False):
+    def extract_solution(self, solution_vars, scaled=False):
         opt_x = np.zeros(self.problem.input_shape)
         for i in range(self.problem.input_shape):
             if scaled:
-                opt_x[i] = solution["norm_x"+str(i)]
+                opt_x[i] = solution_vars["norm_x"+str(i)]
             else:
-                opt_x[i] = solution["x"+str(i)]
+                opt_x[i] = solution_vars["x"+str(i)]
         return opt_x

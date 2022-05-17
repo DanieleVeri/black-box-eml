@@ -6,14 +6,15 @@ from typing import Any, Callable, List
 import numpy as np
 
 def build_problem(
-    name: str, 
-    fun: Callable[[np.ndarray],float], 
-    input_type: List[List], 
-    input_bounds: List[List], 
+    name: str,
+    fun: Callable[[np.ndarray],float],
+    input_type: List[List],
+    input_bounds: List[List],
     constraint_cb: Callable[[List],List] = None,
-    stocasthic: bool = False):
+    stocasthic: bool = False,
+    backend = None):
 
     if 'int' in input_type:
-        return IntegerProblem(name, fun, input_type, input_bounds, constraint_cb, stocasthic)
+        return IntegerProblem(name, fun, input_type, input_bounds, constraint_cb, stocasthic, backend)
     else:
-        return ConvexRealProblem(name, fun, input_type, input_bounds, constraint_cb, stocasthic)
+        return ConvexRealProblem(name, fun, input_type, input_bounds, constraint_cb, stocasthic, backend)

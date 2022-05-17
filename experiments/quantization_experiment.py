@@ -1,11 +1,9 @@
 import sys, os
 sys.path.append('.')
-
 from emlopt.config import DEFAULT
 from emlopt.search_loop import SearchLoop
 from emlopt.problem import build_problem
 from emlopt.wandb import WandbContext
-
 from problems.quantization.tpc import build_tpc, constraint_max_bits
 
 tpc_obj = build_tpc()

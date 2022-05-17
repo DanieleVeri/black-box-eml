@@ -4,8 +4,8 @@ from matplotlib.ticker import Formatter
 import numpy as np
 from .utils import set_seed, timer
 from .problem import BaseProblem
-from .solvers import BaseMILP
-from .surrogates import BaseSurrogate
+from .solvers import get_solver_class, BaseMILP
+from .surrogates import get_surrogate_class, BaseSurrogate
 
 
 class SearchLoop:
@@ -17,8 +17,8 @@ class SearchLoop:
         self.logger = self.init_logging()
         self.iterations = cfg['iterations']
         self.starting_points = cfg['starting_points']
-        surrogate_calss = cfg['surrogate_model']['type']
-        milp_calss = cfg['milp_model']['type']
+        surrogate_calss = get_surrogate_class(cfg['surrogate_model']['type'])
+        milp_calss = get_solver_class(cfg['milp_model']['type'])
         self.surrogate_model: BaseSurrogate = surrogate_calss(problem, cfg['surrogate_model'], self.logger)
         self.milp_model: BaseMILP = milp_calss(problem, cfg['milp_model'], self.iterations, self.logger)
         self.known_points = None
@@ -28,9 +28,9 @@ class SearchLoop:
     @timer
     def init_dataset(self):
         if self.starting_points > 0:
-            generated_x, generated_y = self.problem.get_dataset(self.starting_points)  
+            generated_x, generated_y = self.problem.get_dataset(self.starting_points)
             if self.known_points is None:
-                return generated_x, generated_y 
+                return generated_x, generated_y
             x = np.concatenate((self.known_points[0], generated_x))
             y = np.append(self.known_points[1], generated_y)
             return x,y
@@ -50,7 +50,7 @@ class SearchLoop:
             logger.setLevel(logging.INFO)
         elif self.verbosity == 2:
             logger.setLevel(logging.DEBUG)
-        else: 
+        else:
             raise AttributeError(f"verbosity = {self.verbosity}")
         return logger
 
@@ -65,7 +65,7 @@ class SearchLoop:
         opt_x, milp_runtime = self.milp_model.optimize_acquisition_function(learned_model, self.samples_x, self.samples_y, timer_logger=self.logger)
 
         # check if repeated data point and query obj function
-        opt_y: float 
+        opt_y: float
         dists = np.sum(np.abs(self.samples_x - np.expand_dims(opt_x, 0)), axis=1)
         dmin, dargmin = np.min(dists), np.argmin(dists)
         if not self.problem.stocasthic and dmin <= 1e-6:
@@ -87,7 +87,7 @@ class SearchLoop:
 
         self.logger.info(f"Iteration {iteration} objective value: {opt_y}")
         if self.iteration_callback is not None:
-            self.iteration_callback({ 
+            self.iteration_callback({
                 "x": opt_x,
                 "y": opt_y,
                 "surrogate_runtime": surrogate_runtime,

@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import docplex.mp.model as cpx
 from . import base
@@ -8,7 +9,7 @@ class CplexBackend(base.Backend):
     Attributes
     ---------
         _ml_tol  : float
-            Tollerance 
+            Tollerance
 
     Parameters
     ----------
@@ -18,7 +19,17 @@ class CplexBackend(base.Backend):
     """
     def __init__(self, ml_tol=1e-4):
         self._ml_tol = ml_tol
+        self.vars = {}
         super(CplexBackend, self).__init__()
+
+    def add_cst(self, mdl, cst, name=None):
+        mdl.add_constraint(cst, name)
+
+    def get_lb(self, var):
+        return var.lb
+
+    def get_ub(self, var):
+        return var.ub
 
     def const_eps(self, mdl):
         """ Get tollerance
@@ -26,28 +37,28 @@ class CplexBackend(base.Backend):
         Parameters
         ----------
             mdl : :obj:`docplex.mp.model.Model`
-                Cplex model 
+                Cplex model
 
         Returns
         -------
             Tollerance : float
-                Tollerance 
+                Tollerance
 
-        """ 
+        """
         return self._ml_tol
 
     def var_cont(self, mdl, lb, ub, name=None):
-        """ Creates continuous variable in the model 
+        """ Creates continuous variable in the model
 
         Parameters
         ----------
             mdl : :obj:`docplex.mp.model.Model`
-                Cplex model 
+                Cplex model
             lb : float)
-                Lower bound of the variable 
+                Lower bound of the variable
             ub :float
-                Upper bound of the variable 
-            name : string 
+                Upper bound of the variable
+            name : string
                 Name of the variable (default None)
 
         Returns
@@ -59,7 +70,36 @@ class CplexBackend(base.Backend):
         # Convert bounds in a cplex friendly format
         lb = lb if lb != -float('inf') else -mdl.infinity
         ub = ub if ub != float('inf') else mdl.infinity
-        return mdl.continuous_var(lb=lb, ub=ub, name=name)
+        v = mdl.continuous_var(lb=lb, ub=ub, name=name)
+        self.vars[name] = v
+        return v
+
+    def var_int(self, mdl, lb, ub, name=None):
+        """ Creates integer variable in the model
+
+        Parameters
+        ----------
+            mdl : :obj:`docplex.mp.model.Model`
+                Cplex model
+            lb : float)
+                Lower bound of the variable
+            ub :float
+                Upper bound of the variable
+            name : string
+                Name of the variable (default None)
+
+        Returns
+        -------
+            Continuos Variable : :obj:`docplex.mp.linear.Var``
+                Continuos variable with specified bounds and name
+
+        """
+        # Convert bounds in a cplex friendly format
+        lb = lb if lb != -float('inf') else -mdl.infinity
+        ub = ub if ub != float('inf') else mdl.infinity
+        v = mdl.integer_var(lb=lb, ub=ub, name=name)
+        self.vars[name] = v
+        return v
 
     def var_bin(self, mdl, name=None):
         """ Creates continuous variable in the model
@@ -67,17 +107,19 @@ class CplexBackend(base.Backend):
         Parameters
         ----------
             mdl : :obj:`docplex.mp.model.Model`
-                Cplex model 
+                Cplex model
             name : string)
                 Name of the variable (default None)
 
         Returns
-        ------- 
+        -------
             Binary Variable : :obj:`docplex.mp.linear.Var``
                 Binary Variable
 
         """
-        return mdl.binary_var(name=name)
+        v = mdl.binary_var(name=name)
+        self.vars[name] = v
+        return v
 
     def xpr_scalprod(self, mdl, coefs, terms):
         """ Scalar product of varibles and coefficients
@@ -85,28 +127,28 @@ class CplexBackend(base.Backend):
         Parameters
         ----------
             mdl : :obj:`docplex.mp.model.Model`
-                Cplex model 
+                Cplex model
             coefs : list(float)
-                List of coefficients 
-            terms : list(:obj:docplex.mp.linear.Var]): 
+                List of coefficients
+            terms : list(:obj:docplex.mp.linear.Var]):
                 List of variables
 
         Returns
         -------
             Linear Expression : :obj:`docplex.mp.LinearExpr()`
-                Linear expression representing the linear combination 
+                Linear expression representing the linear combination
                 of terms and coefficients or 0
 
         """
         return sum(c * x for c, x in zip(coefs, terms))
 
     def xpr_sum(self, mld, terms):
-        """ Sum of variables 
+        """ Sum of variables
 
         Parameters
         ----------
             mdl : :obj:`docplex.mp.model.Model`
-                Cplex model 
+                Cplex model
             terms : list(:obj:docplex.mp.linear.Var)
                 List of variables
 
@@ -125,7 +167,7 @@ class CplexBackend(base.Backend):
         Parameters
         ----------
             mdl : :obj:`docplex.mp.model.Model`
-                Cplex model 
+                Cplex model
             left : :obj:docplex.mp.linear.Var
                 Variable
             right : :obj:docplex.mp.linear.Var
@@ -134,8 +176,8 @@ class CplexBackend(base.Backend):
         Returns
         -------
             Equality constraint : :obj:`docplex.mp.constr.LinearConstraint`
-                Equality contraint between the two variables in input 
-        
+                Equality contraint between the two variables in input
+
         """
         return left == right
 
@@ -145,7 +187,7 @@ class CplexBackend(base.Backend):
         Parameters
         ----------
             mdl : :obj:`docplex.mp.model.Model`
-                Cplex model 
+                Cplex model
             left : :obj:docplex.mp.linear.Var
                 Variable
             right : :obj:docplex.mp.linear.Var
@@ -154,8 +196,8 @@ class CplexBackend(base.Backend):
         Returns
         -------
             Inequality constraint : :obj:`docplex.mp.constr.LinearConstraint`
-                Inequality contraint between the two variables in input 
-        
+                Inequality contraint between the two variables in input
+
         """
         return left <= right
 
@@ -165,18 +207,18 @@ class CplexBackend(base.Backend):
         Parameters
         ----------
             mdl : :obj:`docplex.mp.model.Model`
-                Cplex model 
+                Cplex model
             left : :obj:docplex.mp.linear.Var
                 Variable
             right : :obj:docplex.mp.linear.Var
                 Variable
-            name : string 
-                Name of the constraint 
+            name : string
+                Name of the constraint
 
         Returns
         -------
             Equality constraint : :obj:`docplex.mp.constr.LinearConstraint`
-                Equality contraint between the two variables in input 
+                Equality contraint between the two variables in input
 
 
         """
@@ -188,18 +230,18 @@ class CplexBackend(base.Backend):
         Parameters
         ----------
             mdl : :obj:`docplex.mp.model.Model`
-                Cplex model 
+                Cplex model
             left : :obj:docplex.mp.linear.Var
                 Variable
             right : :obj:docplex.mp.linear.Var
                 Variable
-            name : string 
-                Name of the constraint 
+            name : string
+                Name of the constraint
 
         Returns
         -------
             Lower or equal constraint : :obj:`docplex.mp.constr.LinearConstraint`
-                Lowe or equal contraint between the two variables in input 
+                Lowe or equal contraint between the two variables in input
 
 
         """
@@ -214,16 +256,16 @@ class CplexBackend(base.Backend):
         Parameters
         ----------
             mdl : :obj:`docplex.mp.model.Model`
-                Cplex model 
+                Cplex model
             trigger : :obj:`docplex.mp.Var`
-                Binary Variable 
+                Binary Variable
             val : int
                 Active value, used to trigger the satisfaction
                 of the constraint
             cst : :obj:`docplex.mp.constr.LinearConstraint`
-                Linear constraint 
-            name : string 
-                Name of the constraint 
+                Linear constraint
+            name : string
+                Name of the constraint
 
         Returns
         -------
@@ -231,22 +273,22 @@ class CplexBackend(base.Backend):
                 Indicator constraint between the trigger and the linear
                 constraint in input
 
-        """ 
+        """
         return mdl.add_indicator(trigger, cst, val, name=name)
 
     def get_obj(self, mdl):
-        """ Returns objextive expression 
+        """ Returns objextive expression
 
         Parameters
         ----------
             mdl : :obj:`docplex.mp.model.Model`
-                Cplex model 
+                Cplex model
 
         Returns
         -------
             Objective and expression : (string, )
                 'min' if the objective function is to be minimized,
-                'max otherwise. 
+                'max otherwise.
                 The expression repesenting the objective function
 
         """
@@ -255,15 +297,15 @@ class CplexBackend(base.Backend):
         return sense, xpr
 
     def set_obj(self, mdl, sense, xpr):
-        """ Sets the objective function 
+        """ Sets the objective function
 
         Parameters
         ----------
             mdl : :obj:`docplex.mp.model.Model`
-                Cplex model 
-            sense : string 
+                Cplex model
+            sense : string
                 Represents the objective, 'min' or 'max'
-            xpr : 
+            xpr :
                 Expression representing the objective function
 
         Returns
@@ -279,7 +321,7 @@ class CplexBackend(base.Backend):
         Parameters
         -----------
             mdl : :obj:`docplex.mp.model.Model`
-                            Cplex model 
+                            Cplex model
             timelimit : int
                 time limit in seconds for the solver
 
@@ -296,143 +338,17 @@ class CplexBackend(base.Backend):
         status = 'infeasible' if res is None else res.solve_details.status
         obj = None if res is None else res.objective_value
         bound = mdl.solve_details.best_bound
-        lres = {'status':status, 'obj': obj, 'bound': bound,
-                'time': stime}
-        return lres
-
-    # def add_neuron(self, neuron, **args):
-    #     # Cache some attribute
-    #     mdl = self._mdl
-    #     # Obtain cplex-friendly bounds
-    #     lb, ub = neuron.lb(), neuron.ub()
-    #     lb = lb if lb != -float('inf') else -mdl.infinity()
-    #     ub = ub if ub != float('inf') else mdl.infinity()
-    #     # --------------------------------------------------------------------
-    #     # Build a variable for the model output
-    #     # --------------------------------------------------------------------
-    #     idx = neuron.idx()
-    #     x = mdl.continuous_var(lb=lb, ub=ub, name='%s_x%s' % (self._name, str(idx)))
-    #     self.x_add('x'.format(self._name), idx, x)
-    #     # --------------------------------------------------------------------
-    #     # Check whether this is a neuron with an activation function
-    #     # --------------------------------------------------------------------
-    #     net = neuron.network()
-    #     if issubclass(neuron.__class__, describe.DNRActNeuron):
-    #         # Build an expression for the neuron activation
-    #         yterms = [neuron.bias()]
-    #         for pidx, wgt in zip(neuron.connected(), neuron.weights()):
-    #             prdx = self.x_get('x', pidx)
-    #             yterms.append(prdx * wgt)
-    #         y = mdl.sum(yterms)
-    #         self.x_add('y', idx, y)
-    #         # TODO add the redundant constraints by Sanner
-    #         # TODO add bounding constraints on the y expression
-    #         # ----------------------------------------------------------------
-    #         # Introduce the csts and vars for the activation function
-    #         # ----------------------------------------------------------------
-    #         act = neuron.activation()
-    #         if act == 'relu':
-    #             ylb, yub = neuron.ylb(), neuron.yub()
-    #             # Trivial case 1: the neuron is always active
-    #             if ylb >= 0:
-    #                 mdl.add_constraint(x == y)
-    #             # Trivial case 1: the neuron is always inactive
-    #             elif yub <= 0:
-    #                 mdl.add_constraint(x == 0)
-    #             # Handle the non-trivial case
-    #             else:
-    #                 # Enfore the natural bound on the neuron output
-    #                 # NOTE if interval based reasoning has been used to
-    #                 # compute bounds, this will be always redundant
-    #                 x.lb = max(0, lb)
-    #                 # Introduce a binary activation variable
-    #                 z = mdl.binary_var(name='%s_z%s' % (self._name, str(idx)))
-    #                 self.x_add('z', idx, z)
-    #                 # Introduce a slack variable
-    #                 s = mdl.continuous_var(ub=-ylb, name='%s_s%s' % (self._name, str(idx)))
-    #                 self.x_add('s', idx, s)
-    #                 # Buid main constraint
-    #                 cst = mdl.add_constraint(x - s == y, ctname='%s_r0%s' % (self._name, str(idx)))
-    #                 # Build indicator constraints
-    #                 mdl.add_indicator(z, s == 0, 1, name='%s_r1%s' % (self._name, str(idx)))
-    #                 mdl.add_indicator(z, x == 0, 0, name='%s_r2%s' % (self._name, str(idx)))
-    #         elif act == 'linear':
-    #             mdl.add_constraint(x == y, ctname='%s_l%s' % (self._name, str(idx)))
-    #         else:
-    #             raise ValueError('Unsupported "%s" activation function' % act)
-
-
-    # def neuron_bounds(self, neuron, timelimit=None, verbose=0, **args):
-    #     super(CplexBackend, self).neuron_bounds(neuron)
-    #     # Prepare some data structures
-    #     idx, mdl, net = neuron.idx(), self._mdl, neuron.network()
-    #     ttime, bchg = 0, False
-    #     if issubclass(neuron.__class__, describe.DNRActNeuron):
-    #         act = neuron.activation()
-    #     else:
-    #         act = None
-    #     # --------------------------------------------------------------------
-    #     # Store objective state
-    #     # --------------------------------------------------------------------
-    #     original_obj = self._mdl.get_objective_expr()
-    #     original_min = self._mdl.is_minimize()
-    #     # --------------------------------------------------------------------
-    #     # Compute an upper bound
-    #     # --------------------------------------------------------------------
-    #     # Choose the correct objective function
-    #     mdl.set_objective('max', self.x_get('x', idx))
-    #     # Solve the problem and extract the best bound
-    #     res = mdl.solve()
-    #     # Extract the bound
-    #     if res.solve_details.status == 'optimal':
-    #         ub = res.objective_value
-    #     else:
-    #         ub = mdl.solve_details.best_bound
-    #     ttime += mdl.solve_details.time
-    #     # Enforce the bound
-    #     # NOTE for activation neurons, this is an _activation_ bound!
-    #     if act is not None:
-    #         neuron.update_yub(ub)
-    #         neuron.update_ub(describe.act_eval(act, ub))
-    #     else:
-    #         neuron.update_ub(ub)
-    #     # --------------------------------------------------------------------
-    #     # Compute a lower bound
-    #     # --------------------------------------------------------------------
-    #     # Choose the correct objective function
-    #     if act == 'relu' and self.x_has('s', idx):
-    #         mdl.set_objective('min', -self.x_get('s', idx))
-    #     elif act == 'linear':
-    #         mdl.set_objective('min', self.x_get('x', idx))
-    #     else:
-    #         mdl.set_objective('min', self.x_get('x', idx))
-    #     # Solve the problem and extract the best bound
-    #     res = mdl.solve()
-    #     # Extract the bound
-    #     if res.solve_details.status == 'optimal':
-    #         lb = res.objective_value
-    #     else:
-    #         lb = mdl.solve_details.best_bound
-    #     ttime += mdl.solve_details.time
-    #     # Enforce the bound
-    #     # NOTE for activation neurons, this is an _activation_ bound!
-    #     if issubclass(neuron.__class__, describe.DNRActNeuron):
-    #         neuron.update_ylb(lb)
-    #         neuron.update_lb(describe.act_eval(act, lb))
-    #     else:
-    #         neuron.update_lb(lb)
-    #     # --------------------------------------------------------------------
-    #     # Restore objective state
-    #     # --------------------------------------------------------------------
-    #     obj_dir = 'min' if original_min else 'max'
-    #     mdl.set_objective(obj_dir, original_obj)
-    #     # --------------------------------------------------------------------
-    #     # Return results
-    #     # --------------------------------------------------------------------
-    #     return ttime, bchg
+        var_dict = {k: res[k] for k, v in self.vars.items()}
+        return {
+            'status':status,
+            'obj': obj,
+            'time': stime,
+            'bound': bound,
+            'vars': var_dict
+        }
 
     def new_model(self, mdl=None, name=None):
-        """ Creates a new model 
+        """ Creates a new model
 
         Parameters
         ----------
@@ -449,62 +365,20 @@ class CplexBackend(base.Backend):
         """
         return cpx.Model()
 
-    
-    # def update_lb():
+    def set_determinism(self, mdl, seed=42):
+        # mdl.parameters.dettimelimit = self.solver_timeout * 1e3
+        # mdl.parameters.tune.dettimelimit = self.solver_timeout * 1e3
+        # mdl.parameters.threads = 1
+        mdl.parameters.parallel = 1
+        mdl.parameters.randomseed = seed
 
-    # def update_ub():
-        
-
-    # def set_model(self, mdl=None):
-    #     # Clear the current model (if owned)
-    #     if self._mdl_owned:
-    #         self._mdl.end()
-    #     # Build an internal model if necessary
-    #     if mdl is None:
-    #         self._mdl = cpx.Model()
-    #         self._mdl_owned = True
-    #     else:
-    #         self._mdl = mdl
-    #         self._mdl_owned = False
-
-    # def __del__(self):
-    #     if self._mdl_owned:
-    #         self._mdl.end()
-
-    # def __enter__(self):
-    #     return self
-
-    # def __exit(self):
-    #     if self._mdl_owned:
-    #         mdl.end()
-
-
-def model_to_string(mdl):
-    """ Returns a string representing the model
-    
-    Parameters
-    ---------- 
-        mdl : :obj:`docplex.mp.model.Model`
-            Cplex model
-
-    Returns
-    -------
-        Representation : string
-            String representig the cplex model 
-
-    """
-    s = ''
-    # Print objective
-    if mdl.is_minimized():
-        s += 'minimized: %s\n' % mdl.get_objective_expr()
-    else:
-        s += 'maximized: %s\n' % mdl.get_objective_expr()
-    # Print all constraints
-    s += 'subject to:\n'
-    for cst in mdl.iter_constraints():
-        s += '\t%s\n' % str(cst)
-    # Print all variables
-    s += 'with vars:\n'
-    for var in mdl.iter_variables():
-        s += '\t%f <= %s <= %f\n' % (var.lb, str(var), var.ub)
-    return s
+    def set_extensive_log(self, mdl):
+        mdl.context.solver.verbose = 5
+        mdl.context.solver.log_output = True
+        mdl.print_information()
+        # Write the whole model on a txt file
+        box = sys.stdout
+        sys.stdout = open('cplex_model.txt', 'w')
+        mdl.prettyprint()
+        sys.stdout.close()
+        sys.stdout = box

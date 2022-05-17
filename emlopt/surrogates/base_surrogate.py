@@ -29,6 +29,7 @@ class BaseSurrogate:
 
     @timer
     def fit_surrogate(self, x, y):
+        self.logger.info(f"{self.__class__.__name__} surrogate:")
         optimizer = tfa.optimizers.AdamW(
             weight_decay=self.weight_decay, learning_rate=self.lr)
 
@@ -62,7 +63,7 @@ class BaseSurrogate:
             std_pred = min_max_restore_out(std_pred, samples_y, stddev=True)
 
         # 1D domain
-        if self.problem.input_shape == 1:   
+        if self.problem.input_shape == 1:
             fig = plt.figure(figsize=(15, 10))
             plt.xlim(self.problem.input_bounds[0])
             x = np.squeeze(x)
@@ -76,7 +77,7 @@ class BaseSurrogate:
             else: plt.close()
 
         # 2D domain
-        elif self.problem.input_shape == 2:   
+        elif self.problem.input_shape == 2:
             fig = plt.figure(figsize=(15, 10))
             ax = fig.add_subplot(111, projection='3d')
             ax.scatter(

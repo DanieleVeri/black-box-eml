@@ -1,13 +1,12 @@
 from . import process, describe
 from .. import util
-import docplex.mp.linear as cpx_lin
 
 
 def encode(bkd, net, mdl, net_in, net_out, name, verbose=0):
     """ Encodes the network in the optimization model.
 
     Codifies each neuron as a variable in the combinatorial problem,
-    while each edge is considered as a constraint on the the neurons 
+    while each edge is considered as a constraint on the the neurons
     connected.
 
     Parameters
@@ -16,23 +15,23 @@ def encode(bkd, net, mdl, net_in, net_out, name, verbose=0):
             Backend Cplex
         net : :obj:`eml.net.describe.DNRNet`
             Network to embed
-        mdl : :obj:`docplex.mp.model.Model`  
+        mdl : :obj:`docplex.mp.model.Model`
             Model CPLEX
-        net_in : list(:obj:`docplex.mp.linear.Var`) 
+        net_in : list(:obj:`docplex.mp.linear.Var`)
             Input continuous varibles
-        net_out : :obj:`docplex.mp.linear.Var` 
+        net_out : :obj:`docplex.mp.linear.Var`
             Output continuous varibles
         name : string
-            Name of the network 
+            Name of the network
         verbose : int
             If higher than 0 notifies every neuron embeded
 
     Returns
     -------
         Descriptor : :obj:`eml.util.ModelDesc`
-            Descriptor of the neural network 
+            Descriptor of the neural network
 
-    """ 
+    """
     # Scalar to vector output
     try:
         len(net_out)
@@ -58,14 +57,8 @@ def encode(bkd, net, mdl, net_in, net_out, name, verbose=0):
     in_layer = net.layer(0)
     neurons = list(in_layer.neurons())
     for i, var in enumerate(net_in):
-        # TODO wrap access to variables bounds in the back-end
-        # That will enable removing docplex from the depenedencies
-        if var.__class__ == cpx_lin.Var:
-            lb = var.lb
-            ub = var.ub
-        else:
-            lb = var.lb()
-            ub = var.ub()
+        lb = bkd.get_lb(var)
+        ub = bkd.get_ub(var)
         neurons[i].update_lb(lb)
         neurons[i].update_ub(ub)
     process.ibr_bounds(net)
@@ -81,12 +74,12 @@ def _add_neuron(bkd, desc, neuron, x=None):
         bkd : :obj:`eml.backend.cplex_backend.CplexBackend`
             Backend CPLEX
         desc : :obj:`eml.util.Modeldesc`
-            Model descriptor 
+            Model descriptor
         neuron : :obj:`eml.net.describeDNRNeuron`
             Neuron to add
         x : :obj:`docplex.mp.linear.Var`
             Variable representing the neuron (default None)
-    
+
     Raises
     ------
         ValueError
@@ -132,7 +125,7 @@ def _add_neuron(bkd, desc, neuron, x=None):
         # Introduce the csts and vars for the activation function
         # ----------------------------------------------------------------
         act = neuron.activation()
-        if act == 'relu': 
+        if act == 'relu':
             # Build a variable for the model output
             if x is None:
                 x = bkd.var_cont(mdl, max(0, lb), ub, '%s_x%s' % (sn, str(idx)))

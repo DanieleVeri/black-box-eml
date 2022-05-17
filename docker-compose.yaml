@@ -9,4 +9,4 @@ services:
     - ./emlopt:/app/emlopt
     - ./tests:/app/tests
     - ./notebooks:/app/notebooks
-    - ./problems:/app/problems
+    - ./experiments:/app/experiments
