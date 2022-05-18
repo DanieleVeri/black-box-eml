@@ -36,11 +36,13 @@ class EMLBackendTest(unittest.TestCase):
         cls.test_logger.setLevel(logging.DEBUG)
         set_seed()
 
-        cls.rosenbrock = build_problem("rosenbrock_3D", *build_rosenbrock(3))
+        def linear_constraint(backend, model, xvars):
+            return [[xvars[0] - xvars[1] <= 0, "ineq"]]
+        cls.rosenbrock = build_problem("rosenbrock_3D", *build_rosenbrock(3), constraint_cb=linear_constraint)
         cls.polynomial = build_problem("polynomial_1D", polynomial, ['real'], [[0,1]])
         cls.mccormick = build_problem("mccormick_int_2D", mccormick, ['int', 'int'], [[-2, 2], [-2, 2]])
 
-        cls.dataset_rosenbrock = cls.rosenbrock.get_dataset(CONFIG["starting_points"])
+        cls.dataset_rosenbrock = cls.rosenbrock.get_dataset(CONFIG["starting_points"], backend_type='cplex')
         cls.dataset_polynomial = cls.polynomial.get_dataset(CONFIG["starting_points"])
         cls.dataset_mccormick = cls.mccormick.get_dataset(CONFIG["starting_points"])
 
@@ -131,7 +133,8 @@ class EMLBackendTest(unittest.TestCase):
         ortools_milp_model.optimize_acquisition_function(self.model_rosenbrock, *self.dataset_rosenbrock, timer_logger=self.test_logger)
         cplex_milp_model.optimize_acquisition_function(self.model_rosenbrock, *self.dataset_rosenbrock, timer_logger=self.test_logger)
         for k,v in results['ortools'].items():
-            self.assertAlmostEqual(results['ortools'][k], results['cplex'][k], delta=CONFIG["equals_delta"])
+            if 'nn_z' not in k: # the activation can change value due to a floating point error
+                self.assertAlmostEqual(results['ortools'][k], results['cplex'][k], delta=CONFIG["equals_delta"])
 
     @unittest.skipIf(CONFIG['test_mask'][7]==0, "skip")
     def test_polynomial1D_cross_backend_match(self):

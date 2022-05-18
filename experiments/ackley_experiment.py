@@ -33,7 +33,7 @@ CONFIG = {
     }
 }
 
-def constraint_scbo(cplex, xvars):
+def constraint_scbo(backend, milp_model, xvars):
     r = 5
     acc1 = 0
     for xi in xvars:

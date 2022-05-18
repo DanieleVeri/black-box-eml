@@ -11,10 +11,9 @@ def build_problem(
     input_type: List[List],
     input_bounds: List[List],
     constraint_cb: Callable[[List],List] = None,
-    stocasthic: bool = False,
-    backend = None):
+    stocasthic: bool = False):
 
     if 'int' in input_type:
-        return IntegerProblem(name, fun, input_type, input_bounds, constraint_cb, stocasthic, backend)
+        return IntegerProblem(name, fun, input_type, input_bounds, constraint_cb, stocasthic)
     else:
-        return ConvexRealProblem(name, fun, input_type, input_bounds, constraint_cb, stocasthic, backend)
+        return ConvexRealProblem(name, fun, input_type, input_bounds, constraint_cb, stocasthic)

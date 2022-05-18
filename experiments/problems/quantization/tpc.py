@@ -24,15 +24,15 @@ def build_tpc():
         q_aware_model.fit(train_images, train_labels,
                         batch_size=512, epochs=5, validation_split=0.1,
                         callbacks=[tf.keras.callbacks.EarlyStopping(
-                                monitor="val_loss", 
-                                patience=5, 
+                                monitor="val_loss",
+                                patience=5,
                                 restore_best_weights=True)])
-        
+
         q_aware_model_loss, q_aware_model_accuracy = q_aware_model.evaluate(
             test_images, test_labels, verbose=0)
-        
+
         return -q_aware_model_accuracy
     return tpc
 
-def constraint_max_bits(cplex, xvars):
+def constraint_max_bits(backend, milp_model, xvars):
     return [[sum(xvars) <= len(xvars)*4, 'cst_size']]

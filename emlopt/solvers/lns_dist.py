@@ -48,7 +48,7 @@ class LNSDist(BaseMILP):
                 parsed_mdl, self.problem.input_type, pbounds)
 
             if self.problem.constraint_cb is not None:
-                csts = self.problem.constraint_cb(milp_model, xvars)
+                csts = self.problem.constraint_cb(bkd, milp_model, xvars)
                 for pc in csts:
                     bkd.add_cst(milp_model, *pc)
 

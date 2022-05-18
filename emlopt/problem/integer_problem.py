@@ -8,8 +8,8 @@ class IntegerProblem(BaseProblem):
         super(IntegerProblem, self).__init__(*args, **kwargs)
         self.max_retry = 10
 
-    def get_constrained_dataset(self, n_points, query_obj):
-        backend = get_backend(self.backend)
+    def get_constrained_dataset(self, n_points, query_obj, backend_type):
+        backend = get_backend(backend_type)
         x = np.zeros((n_points, self.input_shape))
         num_points = 0
         infeasibilities = 0
@@ -23,15 +23,20 @@ class IntegerProblem(BaseProblem):
                     xvars.append(backend.var_cont(model, lb=b[0], ub=b[1], name="x"+str(i)))
 
             csts = self.constraint_cb(backend, model, xvars)
-            # create restricted problem
-            restriction = 0 if num_points < n_points//2 else np.random.uniform()
             for pc in csts:
-                if not pc[0].right_expr.equals(0):
-                    if pc[0].sense.value == 1: # <=
-                        pc[0].right_expr -= restriction*pc[0].right_expr
-                    elif pc[0].sense.value == 3: # >=
-                        pc[0].right_expr += restriction*pc[0].right_expr
                 backend.add_cst(model, *pc)
+            ## create restricted integer problem
+            # restriction = 0 if num_points < n_points//2 else np.random.uniform()
+            # for pc in csts:
+            #     if backend_type != 'cplex':
+            #         backend.add_cst(model, *pc)
+            #         continue
+            #     if not pc[0].right_expr.equals(0):
+            #         if pc[0].sense.value == 1: # <=
+            #             pc[0].right_expr -= restriction*pc[0].right_expr
+            #         elif pc[0].sense.value == 3: # >=
+            #             pc[0].right_expr += restriction*pc[0].right_expr
+            #     backend.add_cst(model, *pc)
 
             # linear random objective
             obj = 0

@@ -3,7 +3,7 @@ import numpy as np
 
 class BaseProblem:
 
-    def __init__(self, name, fun, input_type, input_bounds, constraint_cb=None, stocasthic=False, backend=None):
+    def __init__(self, name, fun, input_type, input_bounds, constraint_cb=None, stocasthic=False):
         self.name = name
         self.fun = fun
         self.input_type = input_type
@@ -11,18 +11,17 @@ class BaseProblem:
         self.input_shape = len(self.input_bounds)
         self.constraint_cb = constraint_cb
         self.stocasthic = stocasthic
-        self.backend = backend
 
     def get_constrained_dataset(self, n_points):
         raise NotImplementedError
 
-    def get_dataset(self, n_points, query_obj=True):
+    def get_dataset(self, n_points, query_obj=True, backend_type=None):
         if self.constraint_cb is None:
             return self.get_unconstrained_dataset(n_points, query_obj)
         else:
-            if self.backend is None:
+            if backend_type is None:
                 raise Exception("Backend required for constrained dataset.")
-            return self.get_constrained_dataset(n_points, query_obj)
+            return self.get_constrained_dataset(n_points, query_obj, backend_type)
 
     def get_grid(self, n_points, query_obj=True):
         x_list = []

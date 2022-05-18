@@ -19,7 +19,7 @@ class EarlyStop(BaseSurrogate):
 
     @timer
     def init_validation_set(self):
-        return self.problem.get_dataset(self.num_val_points)
+        return self.problem.get_dataset(self.num_val_points, backend_type=self.cfg['backend'])
 
     def train(self, keras_mdl, x, y):
         bs = self.batch_size if self.batch_size else x.shape[0]
@@ -30,9 +30,9 @@ class EarlyStop(BaseSurrogate):
         val_x = min_max_scale_in(self.x_val, np.array(self.problem.input_bounds))
         val_y = min_max_scale_out(self.y_val, y)
 
-        hstory = keras_mdl.fit(norm_x, norm_y, 
+        hstory = keras_mdl.fit(norm_x, norm_y,
             validation_data=(val_x, val_y),
-            batch_size=bs, epochs=self.epochs, 
+            batch_size=bs, epochs=self.epochs,
             verbose=0, callbacks=self.cb)
 
         return hstory

@@ -26,6 +26,7 @@ class DistMethodsTest(unittest.TestCase):
         cls.test_logger = create_logger('emllib-test')
         cls.test_logger.setLevel(logging.DEBUG)
         set_seed()
+
         cls.rosenbrock = build_problem("rosenbrock_5D", *build_rosenbrock(5))
         cls.dataset_rosenbrock = cls.rosenbrock.get_dataset(CONFIG["starting_points"])
         surrogate_cfg = {

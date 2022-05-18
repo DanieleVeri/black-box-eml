@@ -28,7 +28,7 @@ class SearchLoop:
     @timer
     def init_dataset(self):
         if self.starting_points > 0:
-            generated_x, generated_y = self.problem.get_dataset(self.starting_points)
+            generated_x, generated_y = self.problem.get_dataset(self.starting_points, backend_type=self.cfg['milp_model']['backend'])
             if self.known_points is None:
                 return generated_x, generated_y
             x = np.concatenate((self.known_points[0], generated_x))

@@ -26,8 +26,11 @@ class SolverMethodTest(unittest.TestCase):
         cls.test_logger = create_logger('emllib-test')
         cls.test_logger.setLevel(logging.DEBUG)
         set_seed()
-        cls.rosenbrock = build_problem("rosenbrock_3D", *build_rosenbrock(3))
-        cls.dataset_rosenbrock = cls.rosenbrock.get_dataset(CONFIG["starting_points"])
+
+        def linear_constraint(backend, model, xvars):
+            return [[xvars[0] - xvars[1] <= 0, "ineq"]]
+        cls.rosenbrock = build_problem("rosenbrock_3D", *build_rosenbrock(3), constraint_cb=linear_constraint)
+        cls.dataset_rosenbrock = cls.rosenbrock.get_dataset(CONFIG["starting_points"], backend_type='cplex')
         surrogate_cfg = {
             "epochs": 10,
             "learning_rate": 5e-3,

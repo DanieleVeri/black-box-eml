@@ -8,8 +8,8 @@ class ConvexRealProblem(BaseProblem):
     def __init__(self, *args, **kwargs):
         super(ConvexRealProblem, self).__init__(*args, **kwargs)
 
-    def get_constrained_dataset(self, n_points, query_obj):
-        backend = get_backend(self.backend)
+    def get_constrained_dataset(self, n_points, query_obj, backend_type):
+        backend = get_backend(backend_type)
         x = np.zeros((n_points, self.input_shape))
         n_points_boundaries = n_points // 2
         for p in range(n_points_boundaries):
