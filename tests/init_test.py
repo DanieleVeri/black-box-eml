@@ -8,7 +8,8 @@ from emlopt.utils import set_seed
 
 CONFIG = {
     "delta": 1e-3,
-    "test_mask": [1, 1, 1, 0, 1, 1]
+    "test_mask": [1, 1, 1, 0, 1, 1],
+    "starting_points": 200
 }
 
 def non_convex_constraint(backend, model, xvars):
@@ -45,9 +46,7 @@ def plot_points(x):
 
 class InitTest(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(InitTest, cls).setUpClass()
+    def setUp(self):
         set_seed()
 
     @unittest.skipIf(CONFIG['test_mask'][0]==0, "skip")
@@ -56,7 +55,7 @@ class InitTest(unittest.TestCase):
             name="init_points", fun=None,
             input_type=['int']*2, input_bounds=[[-5,5]]*2,
             constraint_cb=qadratic_constraint)
-        x = problem.get_dataset(200, query_obj=False, backend_type='cplex')
+        x = problem.get_dataset(CONFIG['starting_points'], query_obj=False, backend_type='cplex')
         plot_points(x)
         for p in x:
             self.assertTrue((np.sum(np.square(p-[-2, 1])) <= 1+CONFIG['delta']) or (np.sum(np.square(p-[2, -1])) <= 4+CONFIG['delta']))
@@ -67,7 +66,7 @@ class InitTest(unittest.TestCase):
             name="init_points", fun=None,
             input_type=['real']*2, input_bounds=[[-5,5]]*2,
             constraint_cb=qadratic_constraint)
-        x = problem.get_dataset(200, query_obj=False, backend_type='cplex')
+        x = problem.get_dataset(CONFIG['starting_points'], query_obj=False, backend_type='cplex')
         plot_points(x)
         for p in x:
             self.assertTrue((np.sum(np.square(p-[-2, 1])) <= 1+CONFIG['delta']) or (np.sum(np.square(p-[2, -1])) <= 4+CONFIG['delta']))
@@ -78,7 +77,7 @@ class InitTest(unittest.TestCase):
             name="init_points", fun=None,
             input_type=['int']*2, input_bounds=[[-5,5]]*2,
             constraint_cb=non_convex_constraint)
-        x = problem.get_dataset(200, query_obj=False, backend_type='cplex')
+        x = problem.get_dataset(CONFIG['starting_points'], query_obj=False, backend_type='cplex')
         plot_points(x)
         for p in x:
             self.assertTrue((np.sum(np.square(p-[-2, 1])) <= 1+CONFIG['delta']) or (np.sum(np.square(p-[2, -1])) <= 4+CONFIG['delta']))
@@ -89,7 +88,7 @@ class InitTest(unittest.TestCase):
             name="init_points", fun=None,
             input_type=['real']*2, input_bounds=[[-5,5]]*2,
             constraint_cb=non_convex_constraint)
-        x = problem.get_dataset(200, query_obj=False, backend_type='cplex')
+        x = problem.get_dataset(CONFIG['starting_points'], query_obj=False, backend_type='cplex')
         plot_points(x)
         for p in x:
             self.assertTrue((np.sum(np.square(p-[-2, 1])) <= 1+CONFIG['delta']) or (np.sum(np.square(p-[2, -1])) <= 4+CONFIG['delta']))
@@ -100,7 +99,7 @@ class InitTest(unittest.TestCase):
             name="init_points", fun=None,
             input_type=['int']*2, input_bounds=[[-5,5]]*2,
             constraint_cb=linear_constraint)
-        x = problem.get_dataset(200, query_obj=False, backend_type='ortools')
+        x = problem.get_dataset(CONFIG['starting_points'], query_obj=False, backend_type='ortools')
         plot_points(x)
         for p in x:
             self.assertTrue(p[0] <= p[1]+CONFIG['delta'])
@@ -111,7 +110,7 @@ class InitTest(unittest.TestCase):
             name="init_points", fun=None,
             input_type=['real']*2, input_bounds=[[-5,5]]*2,
             constraint_cb=linear_constraint)
-        x = problem.get_dataset(200, query_obj=False, backend_type='ortools')
+        x = problem.get_dataset(CONFIG['starting_points'], query_obj=False, backend_type='ortools')
         plot_points(x)
         for p in x:
             self.assertTrue(p[0] <= p[1]+CONFIG['delta'])

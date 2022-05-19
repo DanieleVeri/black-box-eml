@@ -45,6 +45,9 @@ class DistMethodsTest(unittest.TestCase):
         simple_dist_model = solvers.SimpleDist(cls.rosenbrock, solver_cfg, 1, cls.test_logger)
         cls.opt_x, _ = simple_dist_model.optimize_acquisition_function(cls.model_rosenbrock, *cls.dataset_rosenbrock, timer_logger=cls.test_logger)
 
+    def setUp(self):
+        set_seed()
+
     @unittest.skipIf(CONFIG['test_mask'][0]==0, "skip")
     def test_incremental_dist_match(self):
         cfg = {"backend": 'cplex', "lambda_ucb": 100, "solver_timeout": 30}

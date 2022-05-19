@@ -53,6 +53,9 @@ class EMLBackendTest(unittest.TestCase):
         surrogate_model = surrogates.StopCI(cls.mccormick, CONFIG['surrogate_model'], cls.test_logger)
         cls.model_mccormick, _ = surrogate_model.fit_surrogate(*cls.dataset_mccormick, timer_logger=cls.test_logger)
 
+    def setUp(self):
+        set_seed()
+
     ''' Test callback that given the solution, check if the surrogate prediction match the solver one'''
     def _check_surrogate_match_solver(self, learned_model, milp_model):
         def check_surrogate_match_solver(main_variables, all_variables):

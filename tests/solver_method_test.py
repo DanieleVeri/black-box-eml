@@ -43,6 +43,9 @@ class SolverMethodTest(unittest.TestCase):
         surrogate_model = surrogates.StopCI(cls.rosenbrock, surrogate_cfg, cls.test_logger)
         cls.model_rosenbrock, _ = surrogate_model.fit_surrogate(*cls.dataset_rosenbrock, timer_logger=cls.test_logger)
 
+    def setUp(self):
+        set_seed()
+
     ''' Test callback that given the solution, check if the surrogate prediction match the solver one'''
     def _check_surrogate_match_solver(self, learned_model, milp_model):
         def check_surrogate_match_solver(main_variables, all_variables):
