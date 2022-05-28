@@ -8,19 +8,15 @@ from . import describe, embed
 
 def ibr_bounds(net):
     """ Internal Based Reasoning Bounding
-
-    The bounds of the units in the neural network are updated based on the 
+    The bounds of the units in the neural network are updated based on the
     values evaluated using the activation function
-    
     Parameteres
     -----------
         net : :obj:`eml.net.describe.DNRNet`
-            Neural network of interest 
-
-    Returns 
+            Neural network of interest
+    Returns
     -------
         None
-
     """
     # Sequentially process layers
     for lidx, layer in enumerate(net.layers()):
@@ -33,7 +29,7 @@ def ibr_bounds(net):
                 yub, ylb = nrn.bias(), nrn.bias()
                 for idx, wgt in zip(nrn.connected(), nrn.weights()):
                     prd = net.neuron(idx)
-                    if wgt >= 0: 
+                    if wgt >= 0:
                         yub += wgt * prd.ub()
                         ylb += wgt * prd.lb()
                     else:
@@ -54,11 +50,8 @@ def ibr_bounds(net):
 # Forward bound tightening via Mixed Integer Linear Programming
 # ============================================================================
 
-def fwd_bound_tighthening(bkd, net=None, desc=None,
-        timelimit=None, skip_layers=None, verbose=0):
-    """ Forward bound tightening via Mixed Integer Linear Programming 
-    
-
+def fwd_bound_tighthening(bkd, net, desc=None, timelimit=None, skip_layers=None):
+    """ Forward bound tightening via Mixed Integer Linear Programming
     Parameters
     ----------
         bkd : :obj:`eml.backend.cplex_backend.CplexBackend`
@@ -71,23 +64,15 @@ def fwd_bound_tighthening(bkd, net=None, desc=None,
             Time limit for the process (default None)
         skip_layer : int
             Skips bound tightening for the specified layer (default None)
-        verbose : int
-            if higher than 0 prints more info on the process (default 0)
-
     Returns
     -------
-        Total time : int 
+        Total time : int
             Time used to perform bound tightening by the optimizer
-
     Raises
     ------
         ValueError
             Neither a model descriptor or a network where given in input
-
     """
-    # Check args
-    if (net is None and desc is None) or (net is not None and desc is not None):
-        raise ValueError('Either a network or a network model descriptor should be passed ')
     # If no model descriptor is passed, one is built internally
     if net is not None:
         mdl = bkd.new_model()
@@ -103,9 +88,7 @@ def fwd_bound_tighthening(bkd, net=None, desc=None,
         for neuron in layer.neurons():
             # Add the neuron to the describe
             if build_neurons:
-                if verbose >= 1:
-                    print('Adding neuron %s' % str(neuron.idx()))
-                embed._add_neuron(bkd, desc, neuron)
+                embed._add_neuron(bkd, desc, neuron, is_propagating=True)
             # Do not compute the bounds for skipped layers
             if skip_layers is not None and layer.idx() in skip_layers:
                 continue
@@ -115,8 +98,6 @@ def fwd_bound_tighthening(bkd, net=None, desc=None,
             else:
                 tlim = None
             # Compute bounds
-            if verbose >= 1:
-                print('Computing bounds for %s' % str(neuron.idx()))
             ltime = _neuron_bounds(bkd, desc, neuron, timelimit=tlim)
             ttime += ltime
             nleft -= 1
@@ -125,8 +106,8 @@ def fwd_bound_tighthening(bkd, net=None, desc=None,
 
 
 def _neuron_bounds(bkd, desc, neuron, timelimit):
-    """ Bound tightening for neurons 
-    
+    """ Bound tightening for neurons
+
     Parameters
     ----------
         bkd : :obj:`eml.backend.cplex_backend.CplexBackend`
@@ -147,7 +128,7 @@ def _neuron_bounds(bkd, desc, neuron, timelimit):
     Raises
     ------
         ValueError
-            Neuron not in the current network 
+            Neuron not in the current network
 
     """
     # Preliminary checks
@@ -162,15 +143,15 @@ def _neuron_bounds(bkd, desc, neuron, timelimit):
         act = None
     # Internal model
     mdl = desc.model()
-    # --------------------------------------------------------------------
-    # Store objective state
-    # --------------------------------------------------------------------
-    old_sense, old_obj = bkd.get_obj(mdl)
-    # --------------------------------------------------------------------
+
     # Compute an upper bound
-    # --------------------------------------------------------------------
     # Choose the correct objective function
-    bkd.set_obj(mdl, 'max', desc.get('x', idx))
+    if act == 'relu' and desc.has('s', idx):
+        bkd.set_obj(mdl, 'max', desc.get('x', idx)-desc.get('s', idx))
+    elif act == 'linear':
+        bkd.set_obj(mdl, 'max', desc.get('x', idx))
+    else:
+        bkd.set_obj(mdl, 'max', desc.get('x', idx))
     # Solve the problem and extract the best bound
     res = bkd.solve(mdl, 0.5 * timelimit)
     # Extract the bound
@@ -186,12 +167,12 @@ def _neuron_bounds(bkd, desc, neuron, timelimit):
         neuron.update_ub(describe.act_eval(act, ub))
     else:
         neuron.update_ub(ub)
-    # --------------------------------------------------------------------
+
     # Compute a lower bound
-    # --------------------------------------------------------------------
     # Choose the correct objective function
     if act == 'relu' and desc.has('s', idx):
-        bkd.set_obj(mdl, 'min', -desc.get('s', idx))
+        # bkd.set_obj(mdl, 'min', -desc.get('s', idx))
+        bkd.set_obj(mdl, 'min', desc.get('x', idx)-desc.get('s', idx))
     elif act == 'linear':
         bkd.set_obj(mdl, 'min', desc.get('x', idx))
     else:
@@ -199,7 +180,7 @@ def _neuron_bounds(bkd, desc, neuron, timelimit):
     # Solve the problem and extract the best bound
     res = bkd.solve(mdl, timelimit - ttime)
     # Extract the bound
-    if res['status'] == 'solved':
+    if res['status'] == 'optimal':
         lb = res['obj']
     else:
         lb = res['bound']
@@ -211,11 +192,5 @@ def _neuron_bounds(bkd, desc, neuron, timelimit):
         neuron.update_lb(describe.act_eval(act, lb))
     else:
         neuron.update_lb(lb)
-    # --------------------------------------------------------------------
-    # Restore objective state
-    # --------------------------------------------------------------------
-    bkd.set_obj(mdl, old_sense, old_obj)
-    # --------------------------------------------------------------------
-    # Return results
-    # --------------------------------------------------------------------
+
     return ttime

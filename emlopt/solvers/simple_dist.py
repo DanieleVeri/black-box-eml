@@ -3,8 +3,9 @@ import math
 import numpy as np
 
 from .base_milp import BaseMILP
-from  ..emllib.backend import Backend, get_backend
-from ..eml import parse_tfp, propagate_bound, embed_model, pwl_exp
+from ..emllib.backend import Backend, get_backend
+from ..emllib.net.reader.keras_reader import read_keras_probabilistic_sequential
+from ..emllib.util import pwl_exp
 from ..utils import min_max_scale_in
 
 
@@ -27,10 +28,9 @@ class SimpleDist(BaseMILP):
         else:
             current_lambda = k_lip * ((1-self.current_iteration/self.iterations)**2)
 
-        parsed_mdl = parse_tfp(keras_model)
-        parsed_mdl, _ = propagate_bound(bkd, parsed_mdl, self.problem.input_shape, timer_logger=self.logger)
-        xvars, scaled_xvars, yvars = embed_model(bkd, milp_model,
-            parsed_mdl, self.problem.input_type, self.problem.input_bounds)
+        parsed_mdl = read_keras_probabilistic_sequential(keras_model)
+        parsed_mdl, _ = self.propagate_bound(parsed_mdl, timeout=30, timer_logger=self.logger)
+        xvars, scaled_xvars, yvars = self.embed_model(bkd, milp_model, parsed_mdl)
 
         if self.problem.constraint_cb is not None:
             csts = self.problem.constraint_cb(bkd, milp_model, xvars)

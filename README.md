@@ -3,7 +3,6 @@
 Daniele Verì
 
 [Development status](https://github.com/LIA-UniBo/eml-opt/projects/1)
-___
 
 ## Usage
 ```python

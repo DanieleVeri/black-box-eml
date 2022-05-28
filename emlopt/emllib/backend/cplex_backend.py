@@ -335,7 +335,13 @@ class CplexBackend(base.Backend):
         mdl.set_time_limit(max(1, timelimit))
         res = mdl.solve()
         stime = mdl.solve_details.time
-        status = 'infeasible' if res is None else res.solve_details.status
+        if res is None:
+            status = 'infeasible'
+            return {'status':status,'time': stime}
+        elif res.solve_details.status == 'integer optimal solution':
+            status = 'optimal'
+        else:
+            status = 'solved'
         obj = None if res is None else res.objective_value
         bound = mdl.solve_details.best_bound
         var_dict = {k: res[k] for k, v in self.vars.items()}

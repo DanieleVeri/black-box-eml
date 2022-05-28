@@ -1,3 +1,7 @@
+import math
+import numpy as np
+
+
 # ===========================================================================
 # Encode Piecewise Linear Function
 # ===========================================================================
@@ -34,6 +38,15 @@ def encode_pwl(bkd, mdl, xvars, nodes, mode='sos2', name=''):
             bkd.cst_leq(mdl, xpr, 1)
 
 
+def pwl_exp(bkd, milp_model, var, nnodes=7):
+    lb = bkd.get_lb(var)
+    ub = bkd.get_ub(var)
+    xx = np.linspace(lb, ub, nnodes)
+    yy = np.array(list(map(math.exp, xx)))
+    v = [bkd.var_cont(milp_model, lb=0, ub=np.max(yy), name="exp_out"), var]
+    encode_pwl(bkd, milp_model, v, [yy,xx])
+    return v[0]
+
 # ===========================================================================
 # Genericl model descriptor
 # ===========================================================================
@@ -42,54 +55,54 @@ class ModelDesc:
     """ Class used to shape a model descriptor
 
     A model descriptor summarize the main feature a
-    system, in this case will be used for empirical 
+    system, in this case will be used for empirical
     model learning models
 
     Attributes
     ----------
         _ml :
-            Machine learning model 
-        _mdl : 
-            Optimization model 
-        _name : 
-            Name of the model 
+            Machine learning model
+        _mdl :
+            Optimization model
+        _name :
+            Name of the model
         _exps : string
             Expressions in the model
 
     Parameters
     ---------
         ml :
-            Machine learning model 
-        mdl : 
-            Optimization model 
+            Machine learning model
+        mdl :
+            Optimization model
         name : string
-            Name of the model 
-    
+            Name of the model
+
     """
     def __init__(self, ml, mdl, name):
         self._ml = ml # ml model
-        self._mdl = mdl # opt model 
+        self._mdl = mdl # opt model
         self._name = name
         self._exps = {}
 
     def store(self, xtype, xidx, val):
-        """ Store expression 
+        """ Store expression
 
         Parameters
         ----------
-            xtype : string  
+            xtype : string
                 Type of expression
             xidx : int
                 Index we want to use to store
-                the expression 
-            val: 
-                Value to store  
+                the expression
+            val:
+                Value to store
 
         """
         try:
             len(xidx)
         except:
-            xidx = (xidx,) 
+            xidx = (xidx,)
         self._exps[(xtype,) + xidx] = val
 
     def get(self, xtype, xidx):
@@ -97,12 +110,12 @@ class ModelDesc:
 
         Parameters
         ----------
-            xtype : string 
+            xtype : string
                 Type of expression
             xidx : int
                 Index we want to use to store
-                the expression 
-        
+                the expression
+
         Returns
         -------
             Expr : `generic type``
@@ -112,51 +125,51 @@ class ModelDesc:
         try:
             len(xidx)
         except:
-            xidx = (xidx,) 
+            xidx = (xidx,)
         return self._exps[(xtype,) + xidx]
 
     def has(self, xtype, xidx):
         """ Check if the model contains an expression given some coordinares
-        
+
         Parameters
         ----------
-            xtype : string 
+            xtype : string
                 Type of expression
             xidx : int
                 Index we want to use to store
-                the expression 
-        
+                the expression
+
         Returns
         -------
             Acknowledge : bool
-                True if the expression is present, 
+                True if the expression is present,
                 False otherwise
 
-        """ 
+        """
         try:
             len(xidx)
         except:
-            xidx = (xidx,) 
+            xidx = (xidx,)
         return ((xtype,) + xidx) in self._exps
 
     def expressions(self):
-        """ Get all the expressions stored 
+        """ Get all the expressions stored
 
         Returns
         -------
             Expressions : dict(expr)
-                Set of the expressions in the model 
+                Set of the expressions in the model
         """
         return self._exps
 
     def name(self):
-        """ Get name of the model 
+        """ Get name of the model
 
         Returns
         -------
             Name : string
                 Name of the model
-        
+
         """
         return self._name
 
@@ -166,19 +179,19 @@ class ModelDesc:
         Returns
         -------
             Optimization Model : :obj:`docplex.mp.model.Model`
-                Combinatorial system 
+                Combinatorial system
 
         """
         return self._mdl
 
     def ml_model(self):
-        """ Get machine learning model 
+        """ Get machine learning model
 
         Returns
         -------
             Machine learning model : `generic type`
-                Machine learning model 
-            
+                Machine learning model
+
         """
         return self._ml
 
@@ -191,7 +204,7 @@ class ModelDesc:
                 String representing the layer
 
         """
-        s = '' 
+        s = ''
         s += 'Model Name: ' + self._name + '\n'
         s += 'Machine Learning Model: ' + str(type(self._ml)) + '\n'
         s += 'Optimization Model: ' + str(type(self._mdl)) + '\n'

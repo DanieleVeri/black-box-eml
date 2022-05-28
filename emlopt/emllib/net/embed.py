@@ -2,7 +2,7 @@ from . import process, describe
 from .. import util
 
 
-def encode(bkd, net, mdl, net_in, net_out, name, verbose=0):
+def encode(bkd, net, mdl, net_in, net_out, name):
     """ Encodes the network in the optimization model.
 
     Codifies each neuron as a variable in the combinatorial problem,
@@ -23,8 +23,6 @@ def encode(bkd, net, mdl, net_in, net_out, name, verbose=0):
             Output continuous varibles
         name : string
             Name of the network
-        verbose : int
-            If higher than 0 notifies every neuron embeded
 
     Returns
     -------
@@ -44,8 +42,6 @@ def encode(bkd, net, mdl, net_in, net_out, name, verbose=0):
         # Add the layer to the solver wrapper
         for i, neuron in enumerate(layer.neurons()):
             # Add the neuron to the describe
-            if verbose >= 1:
-                print('Adding neuron %s' % str(neuron.idx()))
             if k == 0:
                 x = net_in[i]
             elif k == net.nlayers()-1:
@@ -66,7 +62,7 @@ def encode(bkd, net, mdl, net_in, net_out, name, verbose=0):
     return desc
 
 
-def _add_neuron(bkd, desc, neuron, x=None):
+def _add_neuron(bkd, desc, neuron, x=None, is_propagating=False):
     """ Add one neuron to the backend
 
     Parameters
@@ -136,7 +132,7 @@ def _add_neuron(bkd, desc, neuron, x=None):
             if ylb >= 0:
                 bkd.cst_eq(mdl, x, y, '%s_l%s' % (sn, str(idx)))
             # Trivial case 1: the neuron is always inactive
-            elif yub <= 0:
+            elif yub <= 0 and not is_propagating:
                 bkd.cst_eq(mdl, x, 0, '%s_z%s' % (sn, str(idx)))
             # Handle the non-trivial case
             else:

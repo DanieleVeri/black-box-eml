@@ -4,7 +4,6 @@ import logging
 from test_utils import create_logger
 import numpy as np
 sys.path.append('.')
-from emlopt.search_loop import SearchLoop
 from emlopt import solvers, surrogates
 from emlopt.utils import set_seed
 from emlopt.problem import build_problem

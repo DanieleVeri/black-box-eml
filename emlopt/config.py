@@ -18,6 +18,7 @@ DEFAULT = {
     "milp_model": {
         "type": "simple_dist",
         "backend": "cplex",
+        "bound_propagation": "both",
         "lambda_ucb": 1,
         "solver_timeout": 120,
     }
