@@ -1,12 +1,11 @@
-import sys, os
-import unittest
-import logging
-from test_utils import create_logger
+import sys
+sys.path.append('..')
+
 import numpy as np
-sys.path.append('.')
+import unittest
+from base_test import BaseTest
 from emlopt import solvers, surrogates
 from emlopt.emllib.backend import get_backend
-from emlopt.utils import set_seed
 from emlopt.problem import build_problem
 from experiments.problems.simple_functions import build_rosenbrock
 from emlopt.emllib.net.reader.keras_reader import read_keras_probabilistic_sequential
@@ -14,7 +13,6 @@ from emlopt.emllib.net.reader.keras_reader import read_keras_probabilistic_seque
 
 CONFIG = {
     "equals_delta": 1e-6,
-    "test_mask": [1,1,1,1,1,1,1,1,1],
     "verbosity": 2,
     "starting_points": 100,
     "surrogate_model": {
@@ -28,24 +26,17 @@ CONFIG = {
     }
 }
 
-class EMLBackendTest(unittest.TestCase):
+class EMLBackendTest(BaseTest):
 
     @classmethod
     def setUpClass(cls):
         super(EMLBackendTest, cls).setUpClass()
-        cls.test_logger = create_logger('emllib-test')
-        cls.test_logger.setLevel(logging.DEBUG)
-        set_seed()
-
         def linear_constraint(backend, model, xvars):
             return [[xvars[0] - xvars[1] <= 0, "ineq"]]
         cls.rosenbrock = build_problem("rosenbrock_3D", *build_rosenbrock(3), constraint_cb=linear_constraint)
         cls.dataset_rosenbrock = cls.rosenbrock.get_dataset(CONFIG["starting_points"], backend_type='cplex')
         surrogate_model = surrogates.StopCI(cls.rosenbrock, CONFIG['surrogate_model'], cls.test_logger)
         cls.model_rosenbrock, _ = surrogate_model.fit_surrogate(*cls.dataset_rosenbrock, timer_logger=cls.test_logger)
-
-    def setUp(self):
-        set_seed()
 
     ''' Test callback that given the solution, check if the surrogate prediction match the solver one'''
     def _check_surrogate_match_solver(self, learned_model, milp_model):
@@ -62,7 +53,6 @@ class EMLBackendTest(unittest.TestCase):
             self.assertAlmostEqual(nn_stddev, solver_stddev, delta=CONFIG["equals_delta"])
         return check_surrogate_match_solver
 
-    @unittest.skipIf(CONFIG['test_mask'][0]==0, "skip")
     def test_milp_tighter_than_ibr(self):
         cfg = {"backend": 'cplex', "lambda_ucb": 1, "solver_timeout": 30, "bound_propagation": 'ibr'}
         ibr_solver = solvers.UCB(self.rosenbrock, cfg, 1, self.test_logger)
@@ -79,7 +69,6 @@ class EMLBackendTest(unittest.TestCase):
         self.assertTrue(milp_last_bounds[0,1] >= ibr_last_bounds[0,1])  # logstddev lb
         self.assertTrue(milp_last_bounds[1,1] <= ibr_last_bounds[1,1])  # logstddev ub
 
-    @unittest.skipIf(CONFIG['test_mask'][1]==0, "skip")
     def test_milp_match_both_propagation_cross_backend(self):
         cfg = {"backend": 'cplex', "lambda_ucb": 1, "solver_timeout": 30, "bound_propagation": 'milp'}
         milp_solver = solvers.UCB(self.rosenbrock, cfg, 1, self.test_logger)
@@ -91,7 +80,6 @@ class EMLBackendTest(unittest.TestCase):
         both_bounded, _ = both_solver.propagate_bound(parsed_mdl, timer_logger=self.test_logger)
         self.assertEqual(str(milp_bounded), str(both_bounded))
 
-    @unittest.skipIf(CONFIG['test_mask'][2]==0, "skip")
     def test_tight_bound_propagation_full_cross_backend(self):
         results = {
             'milp': None,
@@ -111,7 +99,6 @@ class EMLBackendTest(unittest.TestCase):
         both_solver.optimize_acquisition_function(self.model_rosenbrock, *self.dataset_rosenbrock, timer_logger=self.test_logger)
         for k,v in results['milp'].items():
             self.assertAlmostEqual(results['milp'][k], results['both'][k], delta=CONFIG["equals_delta"])
-
 
 if __name__ == '__main__':
     unittest.main()

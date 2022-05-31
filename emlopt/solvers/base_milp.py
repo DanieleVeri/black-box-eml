@@ -24,7 +24,7 @@ class BaseMILP:
 
     @timer
     def optimize_acquisition_function(self, keras_model, samples_x, sample_y):
-        self.logger.info(f"{self.__class__.__name__} solver:")
+        self.logger.debug(f"{self.__class__.__name__} solver:")
         return self.solve(keras_model, samples_x, sample_y)
 
     @timer

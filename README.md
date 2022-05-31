@@ -100,7 +100,7 @@ Default configuraition object definition:
 ## Folder
 - **tests**: Contains the unit tests that validate the proper functionality of the EML library and the optimizaiton loop with both the backends.
 - **experiments**: Contains the script that launch the search on hard optimization problems while logging the results on Weights and Biases.
-- **notebooks**: Contains the notebooks for display essily the results.
+- **notebooks**: Contains the notebooks for display easily the results.
 
 ## Debug
 The Dockerfile is configured to allow the remote debugging of the python code with VS Code.

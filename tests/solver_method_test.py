@@ -1,9 +1,9 @@
-import sys, os
-import unittest
-import logging
-from test_utils import create_logger
+import sys
+sys.path.append('..')
+
 import numpy as np
-sys.path.append('.')
+import unittest
+from base_test import BaseTest
 from emlopt.search_loop import SearchLoop
 from emlopt import solvers, surrogates
 from emlopt.utils import set_seed
@@ -13,20 +13,15 @@ from experiments.problems.simple_functions import polynomial, build_rosenbrock, 
 
 CONFIG = {
     "equals_delta": 1e-6,
-    "test_mask": [1,1,1,1,1,1,1,1,1],
     "verbosity": 2,
     "starting_points": 10
 }
 
-class SolverMethodTest(unittest.TestCase):
+class SolverMethodTest(BaseTest):
 
     @classmethod
     def setUpClass(cls):
         super(SolverMethodTest, cls).setUpClass()
-        cls.test_logger = create_logger('emllib-test')
-        cls.test_logger.setLevel(logging.DEBUG)
-        set_seed()
-
         def linear_constraint(backend, model, xvars):
             return [[xvars[0] - xvars[1] <= 0, "ineq"]]
         cls.rosenbrock = build_problem("rosenbrock_3D", *build_rosenbrock(3), constraint_cb=linear_constraint)
@@ -43,9 +38,6 @@ class SolverMethodTest(unittest.TestCase):
         surrogate_model = surrogates.StopCI(cls.rosenbrock, surrogate_cfg, cls.test_logger)
         cls.model_rosenbrock, _ = surrogate_model.fit_surrogate(*cls.dataset_rosenbrock, timer_logger=cls.test_logger)
 
-    def setUp(self):
-        set_seed()
-
     ''' Test callback that given the solution, check if the surrogate prediction match the solver one'''
     def _check_surrogate_match_solver(self, learned_model, milp_model):
         def check_surrogate_match_solver(main_variables, all_variables):
@@ -61,7 +53,6 @@ class SolverMethodTest(unittest.TestCase):
             self.assertAlmostEqual(nn_stddev, solver_stddev, delta=CONFIG["equals_delta"])
         return check_surrogate_match_solver
 
-    @unittest.skipIf(CONFIG['test_mask'][0]==0, "skip")
     def test_UCB_surrogate_match_solver(self):
         solver_cfg = {
             'backend': "ortools",
@@ -72,7 +63,6 @@ class SolverMethodTest(unittest.TestCase):
         cplex_milp_model.solution_callback = self._check_surrogate_match_solver(self.model_rosenbrock, cplex_milp_model)
         cplex_milp_model.optimize_acquisition_function(self.model_rosenbrock, *self.dataset_rosenbrock, timer_logger=self.test_logger)
 
-    @unittest.skipIf(CONFIG['test_mask'][1]==0, "skip")
     def test_simple_dist_surrogate_match_solver(self):
         solver_cfg = {
             'backend': "ortools",
@@ -83,7 +73,6 @@ class SolverMethodTest(unittest.TestCase):
         cplex_milp_model.solution_callback = self._check_surrogate_match_solver(self.model_rosenbrock, cplex_milp_model)
         cplex_milp_model.optimize_acquisition_function(self.model_rosenbrock, *self.dataset_rosenbrock, timer_logger=self.test_logger)
 
-    @unittest.skipIf(CONFIG['test_mask'][2]==0, "skip")
     def test_dynamic_lambda_surrogate_match_solver(self):
         solver_cfg = {
             'backend': "ortools",
@@ -95,7 +84,6 @@ class SolverMethodTest(unittest.TestCase):
         cplex_milp_model.solution_callback = self._check_surrogate_match_solver(self.model_rosenbrock, cplex_milp_model)
         cplex_milp_model.optimize_acquisition_function(self.model_rosenbrock, *self.dataset_rosenbrock, timer_logger=self.test_logger)
 
-    @unittest.skipIf(CONFIG['test_mask'][3]==0, "skip")
     def test_incremental_dist_surrogate_match_solver(self):
         solver_cfg = {
             'backend': "ortools",
@@ -107,7 +95,6 @@ class SolverMethodTest(unittest.TestCase):
         cplex_milp_model.solution_callback = self._check_surrogate_match_solver(self.model_rosenbrock, cplex_milp_model)
         cplex_milp_model.optimize_acquisition_function(self.model_rosenbrock, *self.dataset_rosenbrock, timer_logger=self.test_logger)
 
-    @unittest.skipIf(CONFIG['test_mask'][4]==0, "skip")
     def test_lns_dist_surrogate_match_solver(self):
         solver_cfg = {
             "backend": "ortools",
@@ -119,7 +106,6 @@ class SolverMethodTest(unittest.TestCase):
         cplex_milp_model.current_iteration = 0
         cplex_milp_model.solution_callback = self._check_surrogate_match_solver(self.model_rosenbrock, cplex_milp_model)
         cplex_milp_model.optimize_acquisition_function(self.model_rosenbrock, *self.dataset_rosenbrock, timer_logger=self.test_logger)
-
 
 if __name__ == '__main__':
     unittest.main()

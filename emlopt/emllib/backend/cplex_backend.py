@@ -1,7 +1,7 @@
 import sys
-import numpy as np
-import docplex.mp.model as cpx
+import tempfile
 from . import base
+import docplex.mp.model as cpx
 
 class CplexBackend(base.Backend):
     """ Backend for CPLEX solver
@@ -384,7 +384,7 @@ class CplexBackend(base.Backend):
         mdl.print_information()
         # Write the whole model on a txt file
         box = sys.stdout
-        sys.stdout = open('cplex_model.txt', 'w')
+        sys.stdout = open(f'{tempfile.gettempdir()}/cplex_model.txt', 'w')
         mdl.prettyprint()
         sys.stdout.close()
         sys.stdout = box

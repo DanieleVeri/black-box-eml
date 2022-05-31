@@ -1,4 +1,5 @@
 import logging
+import tempfile
 import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
@@ -40,7 +41,7 @@ class BaseSurrogate:
 
     @timer
     def fit_surrogate(self, x, y):
-        self.logger.info(f"{self.__class__.__name__} surrogate:")
+        self.logger.debug(f"{self.__class__.__name__} surrogate:")
         optimizer = tfa.optimizers.AdamW(
             weight_decay=self.weight_decay, learning_rate=self.lr)
 
@@ -57,7 +58,7 @@ class BaseSurrogate:
 
     def plot_loss(self):
         plt.plot(self.loss_history.history["loss"])
-        plt.savefig('train_loss.png')
+        plt.savefig(f'{tempfile.gettempdir()}/train_loss.png')
         if is_plot_visible(): plt.show()
         else: plt.close()
 
@@ -83,7 +84,7 @@ class BaseSurrogate:
             plt.fill_between(x, pred-std_pred, pred+std_pred, alpha=0.3, color='tab:blue', label='+/- std')
             plt.scatter(samples_x, samples_y, c="orange")
             plt.legend(["GT", "predicted mean", "predicted CI", "samples"], prop={'size': 14})
-            plt.savefig('chart.png')
+            plt.savefig(f'{tempfile.gettempdir()}/chart.png')
             if is_plot_visible(): plt.show()
             else: plt.close()
 
@@ -99,7 +100,7 @@ class BaseSurrogate:
             ax.scatter(x[:, 0], x[:, 1], pred+std_pred, alpha=0.3, color="lightblue")
             ax.view_init(elev=15, azim=60)
             plt.legend(["samples", "GT", "predicted mean", "predicted CI"], prop={'size': 14})
-            plt.savefig('chart.png')
+            plt.savefig(f'{tempfile.gettempdir()}/chart.png')
             if is_plot_visible(): plt.show()
             else: plt.close()
 

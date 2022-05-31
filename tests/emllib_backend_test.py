@@ -1,18 +1,16 @@
-import sys, os
-import unittest
-import logging
-from test_utils import create_logger
+import sys
+sys.path.append('..')
+
 import numpy as np
-sys.path.append('.')
+import unittest
+from base_test import BaseTest
 from emlopt import solvers, surrogates
 from emlopt.utils import set_seed
 from emlopt.problem import build_problem
-
 from experiments.problems.simple_functions import polynomial, build_rosenbrock, mccormick
 
 CONFIG = {
     "equals_delta": 1e-6,
-    "test_mask": [1,1,1,1,1,1,1,1,1],
     "verbosity": 2,
     "starting_points": 10,
     "surrogate_model": {
@@ -26,15 +24,11 @@ CONFIG = {
     }
 }
 
-class EMLBackendTest(unittest.TestCase):
+class EMLBackendTest(BaseTest):
 
     @classmethod
     def setUpClass(cls):
         super(EMLBackendTest, cls).setUpClass()
-        cls.test_logger = create_logger('emllib-test')
-        cls.test_logger.setLevel(logging.DEBUG)
-        set_seed()
-
         def linear_constraint(backend, model, xvars):
             return [[xvars[0] - xvars[1] <= 0, "ineq"]]
         cls.rosenbrock = build_problem("rosenbrock_3D", *build_rosenbrock(3), constraint_cb=linear_constraint)
@@ -52,9 +46,6 @@ class EMLBackendTest(unittest.TestCase):
         surrogate_model = surrogates.StopCI(cls.mccormick, CONFIG['surrogate_model'], cls.test_logger)
         cls.model_mccormick, _ = surrogate_model.fit_surrogate(*cls.dataset_mccormick, timer_logger=cls.test_logger)
 
-    def setUp(self):
-        set_seed()
-
     ''' Test callback that given the solution, check if the surrogate prediction match the solver one'''
     def _check_surrogate_match_solver(self, learned_model, milp_model):
         def check_surrogate_match_solver(main_variables, all_variables):
@@ -70,35 +61,30 @@ class EMLBackendTest(unittest.TestCase):
             self.assertAlmostEqual(nn_stddev, solver_stddev, delta=CONFIG["equals_delta"])
         return check_surrogate_match_solver
 
-    @unittest.skipIf(CONFIG['test_mask'][0]==0, "skip")
     def test_cplex_polynomial1D_surrogate_match_solver(self):
         cfg = {"backend": 'cplex', "lambda_ucb": 1, "solver_timeout": 30}
         cplex_milp_model = solvers.SimpleDist(self.polynomial, cfg, 1, self.test_logger)
         cplex_milp_model.solution_callback = self._check_surrogate_match_solver(self.model_polynomial, cplex_milp_model)
         cplex_milp_model.optimize_acquisition_function(self.model_polynomial, *self.dataset_polynomial, timer_logger=self.test_logger)
 
-    @unittest.skipIf(CONFIG['test_mask'][1]==0, "skip")
     def test_ortools_polynomial1D_surrogate_match_solver(self):
         cfg = {"backend": 'ortools', "lambda_ucb": 1, "solver_timeout": 30}
         ortools_milp_model = solvers.SimpleDist(self.polynomial, cfg, 1, self.test_logger)
         ortools_milp_model.solution_callback = self._check_surrogate_match_solver(self.model_polynomial, ortools_milp_model)
         ortools_milp_model.optimize_acquisition_function(self.model_polynomial, *self.dataset_polynomial, timer_logger=self.test_logger)
 
-    @unittest.skipIf(CONFIG['test_mask'][2]==0, "skip")
     def test_cplex_rosenbrock3D_surrogate_match_solver(self):
         cfg = {"backend": 'cplex', "lambda_ucb": 1, "solver_timeout": 30}
         cplex_milp_model = solvers.SimpleDist(self.rosenbrock, cfg, 1, self.test_logger)
         cplex_milp_model.solution_callback = self._check_surrogate_match_solver(self.model_rosenbrock, cplex_milp_model)
         cplex_milp_model.optimize_acquisition_function(self.model_rosenbrock, *self.dataset_rosenbrock, timer_logger=self.test_logger)
 
-    @unittest.skipIf(CONFIG['test_mask'][3]==0, "skip")
     def test_ortools_rosenbrock3D_surrogate_match_solver(self):
         cfg = {"backend": 'ortools', "lambda_ucb": 1, "solver_timeout": 30}
         ortools_milp_model = solvers.SimpleDist(self.rosenbrock, cfg, 1, self.test_logger)
         ortools_milp_model.solution_callback = self._check_surrogate_match_solver(self.model_rosenbrock, ortools_milp_model)
         ortools_milp_model.optimize_acquisition_function(self.model_rosenbrock, *self.dataset_rosenbrock, timer_logger=self.test_logger)
 
-    @unittest.skipIf(CONFIG['test_mask'][4]==0, "skip")
     def test_cplex_mccormick_integer_2D_surrogate_match_solver(self):
         cfg = {"backend": 'cplex', "lambda_ucb": 1, "solver_timeout": 30}
         cplex_milp_model = solvers.SimpleDist(self.mccormick, cfg, 1, self.test_logger)
@@ -107,7 +93,6 @@ class EMLBackendTest(unittest.TestCase):
         self.assertAlmostEqual(opt_x[0], np.round(opt_x[0]), delta=CONFIG['equals_delta'])
         self.assertAlmostEqual(opt_x[1], np.round(opt_x[1]), delta=CONFIG['equals_delta'])
 
-    @unittest.skipIf(CONFIG['test_mask'][5]==0, "skip")
     def test_ortools_mccormick_integer_2D_surrogate_match_solver(self):
         cfg = {"backend": 'ortools', "lambda_ucb": 1, "solver_timeout": 30}
         ortools_milp_model = solvers.SimpleDist(self.mccormick, cfg, 1, self.test_logger)
@@ -116,7 +101,6 @@ class EMLBackendTest(unittest.TestCase):
         self.assertAlmostEqual(opt_x[0], np.round(opt_x[0]), delta=CONFIG['equals_delta'])
         self.assertAlmostEqual(opt_x[1], np.round(opt_x[1]), delta=CONFIG['equals_delta'])
 
-    @unittest.skipIf(CONFIG['test_mask'][6]==0, "skip")
     def test_rosenbrock3D_cross_backend_match(self):
         results = {
             'ortools': None,
@@ -138,7 +122,6 @@ class EMLBackendTest(unittest.TestCase):
             if 'nn_z' not in k: # the activation can change value due to a floating point error
                 self.assertAlmostEqual(results['ortools'][k], results['cplex'][k], delta=CONFIG["equals_delta"])
 
-    @unittest.skipIf(CONFIG['test_mask'][7]==0, "skip")
     def test_polynomial1D_cross_backend_match(self):
         results = {
             'ortools': None,
@@ -159,7 +142,6 @@ class EMLBackendTest(unittest.TestCase):
         for k,v in results['ortools'].items():
             self.assertAlmostEqual(results['ortools'][k], results['cplex'][k], delta=CONFIG["equals_delta"])
 
-    @unittest.skipIf(CONFIG['test_mask'][8]==0, "skip")
     def test_integer_mccormick2D_cross_backend_match(self):
         results = {
             'ortools': None,
@@ -179,7 +161,6 @@ class EMLBackendTest(unittest.TestCase):
         cplex_milp_model.optimize_acquisition_function(self.model_mccormick, *self.dataset_mccormick, timer_logger=self.test_logger)
         for k,v in results['ortools'].items():
             self.assertAlmostEqual(results['ortools'][k], results['cplex'][k], delta=CONFIG["equals_delta"])
-
 
 if __name__ == '__main__':
     unittest.main()

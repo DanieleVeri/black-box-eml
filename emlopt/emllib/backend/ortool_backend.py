@@ -1,4 +1,5 @@
 import time
+import tempfile
 from . import base
 from ortools.linear_solver import pywraplp
 
@@ -426,5 +427,5 @@ class OrtoolsBackend(base.Backend):
 
     def set_extensive_log(self, mdl):
         # Write the hole model on a txt file
-        with open('ortools_model.txt', 'w') as file:
+        with open(f'{tempfile.gettempdir()}/ortools_model.txt', 'w') as file:
             file.write(mdl.ExportModelAsLpFormat(False).replace('\\', '').replace(',_', ','))

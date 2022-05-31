@@ -1,32 +1,26 @@
-import sys, os
-import unittest
-import logging
-from test_utils import create_logger
+import sys
+sys.path.append('..')
+
 import numpy as np
-sys.path.append('.')
+import unittest
+from base_test import BaseTest
 from emlopt.search_loop import SearchLoop
 from emlopt import solvers, surrogates
 from emlopt.utils import set_seed
 from emlopt.problem import build_problem
-
 from experiments.problems.simple_functions import build_rosenbrock
 
 CONFIG = {
     "equals_delta": 1e-6,
-    "test_mask": [1,1,1,1,1,1,1,1,1],
     "verbosity": 2,
     "starting_points": 50
 }
 
-class DistMethodsTest(unittest.TestCase):
+class DistMethodsTest(BaseTest):
 
     @classmethod
     def setUpClass(cls):
         super(DistMethodsTest, cls).setUpClass()
-        cls.test_logger = create_logger('emllib-test')
-        cls.test_logger.setLevel(logging.DEBUG)
-        set_seed()
-
         cls.rosenbrock = build_problem("rosenbrock_5D", *build_rosenbrock(5))
         cls.dataset_rosenbrock = cls.rosenbrock.get_dataset(CONFIG["starting_points"])
         surrogate_cfg = {
@@ -45,10 +39,6 @@ class DistMethodsTest(unittest.TestCase):
         simple_dist_model = solvers.SimpleDist(cls.rosenbrock, solver_cfg, 1, cls.test_logger)
         cls.opt_x, _ = simple_dist_model.optimize_acquisition_function(cls.model_rosenbrock, *cls.dataset_rosenbrock, timer_logger=cls.test_logger)
 
-    def setUp(self):
-        set_seed()
-
-    @unittest.skipIf(CONFIG['test_mask'][0]==0, "skip")
     def test_incremental_dist_match(self):
         cfg = {"backend": 'cplex', "lambda_ucb": 100, "solver_timeout": 30}
         incremental_dist_model = solvers.IncrementalDist(self.rosenbrock, cfg, 1, self.test_logger)
@@ -57,7 +47,6 @@ class DistMethodsTest(unittest.TestCase):
         diff = np.sum(np.abs(diff))
         self.assertAlmostEqual(diff, 0.0, delta=CONFIG['equals_delta'])
 
-    @unittest.skipIf(CONFIG['test_mask'][1]==0, "skip")
     def test_speedup_dist_match(self):
         cfg = {"backend": 'cplex', "lambda_ucb": 100, "solver_timeout": 30}
         incremental_dist_model = solvers.SpeedupDist(self.rosenbrock, cfg, 1, self.test_logger)

@@ -1,7 +1,7 @@
 import pickle
 import numpy as np
 import wandb
-
+import tempfile
 from .search_loop import SearchLoop
 
 
@@ -50,9 +50,9 @@ class WandbContext:
 
     def on_end_iteration(self, obj={}):
         if self.search.verbosity == 2:
-            wandb.log({"train_loss": wandb.Image('train_loss.png')}, commit=False)
+            wandb.log({"train_loss": wandb.Image(f'{tempfile.gettempdir()}/train_loss.png')}, commit=False)
             if self.search.problem.input_shape <= 2:
-                wandb.log({"train_predictions": wandb.Image('chart.png')}, commit=False)
+                wandb.log({"train_predictions": wandb.Image(f'{tempfile.gettempdir()}/chart.png')}, commit=False)
         wandb.log({"y_min": np.min(self.search.samples_y)}, commit=False)
         wandb.log(obj)
 
