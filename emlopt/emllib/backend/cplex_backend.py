@@ -338,7 +338,7 @@ class CplexBackend(base.Backend):
         if res is None:
             status = 'infeasible'
             return {'status':status,'time': stime}
-        elif res.solve_details.status == 'integer optimal solution':
+        elif "optimal" in res.solve_details.status:
             status = 'optimal'
         else:
             status = 'solved'

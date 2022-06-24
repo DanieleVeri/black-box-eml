@@ -3,11 +3,12 @@ sys.path.append('..')
 
 import numpy as np
 import unittest
+from unittest.mock import patch
 from base_test import BaseTest
 from emlopt import solvers, surrogates
 from emlopt.emllib.backend import get_backend
 from emlopt.problem import build_problem
-from experiments.problems.simple_functions import build_rosenbrock
+from experiments.problems.simple_functions import build_rosenbrock, build_ackley
 from emlopt.emllib.net.reader.keras_reader import read_keras_probabilistic_sequential
 
 
@@ -99,6 +100,40 @@ class EMLBackendTest(BaseTest):
         both_solver.optimize_acquisition_function(self.model_rosenbrock, *self.dataset_rosenbrock, timer_logger=self.test_logger)
         for k,v in results['milp'].items():
             self.assertAlmostEqual(results['milp'][k], results['both'][k], delta=CONFIG["equals_delta"])
+
+    def pwl_exp_mock(bkd, milp_model, var, nnodes=7):
+        return bkd.var_cont(milp_model, lb=0, ub=0, name="exp_out")
+
+    @patch('emlopt.solvers.simple_dist.pwl_exp', unittest.mock.MagicMock(side_effect=pwl_exp_mock))
+    def test_domain_constraint_in_propagation(self):
+        # Note that using quadratic contraints with CPLEX will result in higher floating point errors, causing the tests to fail
+        def constraint(backend, milp_model, xvars):
+            acc2 = 0
+            for xi in xvars:
+                acc2 += xi
+            b = backend.var_bin(milp_model, name="exclusive_bin")
+            M=1000
+            return [
+                [xvars[0] + xvars[1] - b*M <= 4 , "cst0"],
+                [xvars[0] + xvars[1] + (1-b)*M >= 1 , "cst1"],
+                [acc2 <= 0, "cst2"]
+            ]
+
+        problem = build_problem("ackley_10D", *build_ackley(10), constraint_cb=constraint)
+        dataset = problem.get_dataset(15, backend_type='cplex')
+        surrogate_model = surrogates.StopCI(problem, CONFIG['surrogate_model'], self.test_logger)
+        model, _ = surrogate_model.fit_surrogate(*dataset, timer_logger=self.test_logger)
+
+        cfg = {"backend": 'ortools', "lambda_ucb": 1, "solver_timeout": 120, "bound_propagation": 'both'}
+        milp_solver = solvers.SimpleDist(problem, cfg, 1, self.test_logger)
+        both_solution, _ = milp_solver.optimize_acquisition_function(model, *dataset, timer_logger=self.test_logger)
+
+        cfg = {"backend": 'cplex', "lambda_ucb": 1, "solver_timeout": 120, "bound_propagation": 'domain'}
+        milp_solver = solvers.SimpleDist(problem, cfg, 1, self.test_logger)
+        domain_solution, _ = milp_solver.optimize_acquisition_function(model, *dataset, timer_logger=self.test_logger)
+
+        for i,_ in enumerate(domain_solution):
+            self.assertAlmostEqual(domain_solution[i], both_solution[i], delta=CONFIG["equals_delta"])
 
 if __name__ == '__main__':
     unittest.main()

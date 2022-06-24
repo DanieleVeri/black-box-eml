@@ -50,7 +50,7 @@ def ibr_bounds(net):
 # Forward bound tightening via Mixed Integer Linear Programming
 # ============================================================================
 
-def fwd_bound_tighthening(bkd, net, desc=None, timelimit=None, skip_layers=None):
+def fwd_bound_tighthening(bkd, net, desc=None, timelimit=None, skip_layers=None, constraint_cb=None):
     """ Forward bound tightening via Mixed Integer Linear Programming
     Parameters
     ----------
@@ -84,6 +84,12 @@ def fwd_bound_tighthening(bkd, net, desc=None, timelimit=None, skip_layers=None)
     # Process the network layer by layer
     ttime, nleft = 0, net.size()
     for k, layer in enumerate(net.layers()):
+        # add domain constraints just once and after the input layer
+        if k==1 and constraint_cb is not None:
+            xvars = [desc.get('x', (0, input_index)) for input_index in range(net.layer(0).size())]
+            csts = constraint_cb(bkd, mdl, xvars)
+            for pc in csts:
+                bkd.add_cst(mdl, *pc)
         # Add the layer to the solver wrapper
         for neuron in layer.neurons():
             # Add the neuron to the describe
@@ -98,7 +104,7 @@ def fwd_bound_tighthening(bkd, net, desc=None, timelimit=None, skip_layers=None)
             else:
                 tlim = None
             # Compute bounds
-            ltime = _neuron_bounds(bkd, desc, neuron, timelimit=tlim)
+            ltime = _neuron_bounds(bkd, desc, neuron, timelimit=timelimit)
             ttime += ltime
             nleft -= 1
     # Return total time
@@ -153,7 +159,7 @@ def _neuron_bounds(bkd, desc, neuron, timelimit):
     else:
         bkd.set_obj(mdl, 'max', desc.get('x', idx))
     # Solve the problem and extract the best bound
-    res = bkd.solve(mdl, 0.5 * timelimit)
+    res = bkd.solve(mdl, timelimit)
     # Extract the bound
     if res['status'] == 'optimal':
         ub = res['obj']

@@ -422,10 +422,11 @@ class OrtoolsBackend(base.Backend):
         return pywraplp.Solver(name if name else 'milp_model', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
 
     def set_determinism(self, mdl, seed=42):
-        # TODO
+        #mdl.SetSolverSpecificParametersAsString('randomization/lpseed=0')
         pass
 
     def set_extensive_log(self, mdl):
-        # Write the hole model on a txt file
+        # Write the whole model on a txt file
         with open(f'{tempfile.gettempdir()}/ortools_model.txt', 'w') as file:
             file.write(mdl.ExportModelAsLpFormat(False).replace('\\', '').replace(',_', ','))
+        #mdl.SetSolverSpecificParametersAsString('display/verblevel=5')

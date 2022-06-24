@@ -68,6 +68,7 @@ Default configuraition object definition:
     {
         "type": "simple_dist",
         "backend": "cplex",
+        "bound_propagation": "both",
         "lambda_ucb": 1,
         "solver_timeout": 120,
     }
@@ -88,14 +89,19 @@ Default configuraition object definition:
 | surrogate_model.ci_threshold | positive real | the confidence interval threshold for the stop_ci surrogate model
 | milp_model.type | ucb, simple_dist, incremental_dist, speedup_dist, lns_dist | the milp solver model
 | milp_model.backend | cplex, ortools | the milp solver backend
-| milp_model.bound_propagation | ibr, milp, both | the bound propagation algorithm; both performs ibr first and then milp
+| milp_model.bound_propagation | ibr, milp, both, domain | the bound propagation algorithm
 | milp_model.lambds_ucb | positive real | the coefficient that balances UCB exploration/exploitation
 | milp_model.solver_timeout | positive integer | the milp solver timeout in seconds
 
+## Bound propagation
+- Interval Bound Reasoning: fast and coarse method to obtain preliminary bounds
+- MILP: compute per neuron bounds by maximizing/minimizing the pre activation value
+- Both: Performs IBR and then MILP
+- Domain: Like the 'both' method but integrates also domain specific contraints, resulting in a slower bound propagation that computes tighter bounds.
 
 ## Backends
 - **cplex**: The IBM CPLEX MIL(Q)P solver. Can be used only for personal or accademic purposes.
-- **ortools**: The Google OrTools solver. Can be used without limits but cannot handle quadratic contraints, also is much slower than CPLEX.
+- **ortools**: The Google OrTools solver. Can be used without limits but **cannot handle quadratic contraints**, also is much slower than CPLEX.
 
 ## Folder
 - **tests**: Contains the unit tests that validate the proper functionality of the EML library and the optimizaiton loop with both the backends.
@@ -104,4 +110,5 @@ Default configuraition object definition:
 
 ## Debug
 The Dockerfile is configured to allow the remote debugging of the python code with VS Code.
-Just run `./launch_debug <path_to_file>` and then click on 'Remote debug attach' on the IDE.
+In order to run the debug server, open a shell inside the docker container, then `cd tests` and run `./launch_debug <fine_name>.`
+Finally click on 'Remote debug attach' in the IDE.

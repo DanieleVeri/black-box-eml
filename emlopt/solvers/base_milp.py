@@ -44,6 +44,22 @@ class BaseMILP:
             self.logger.debug(f"Using IBR and then MILP bound propagation")
             ibr_bounds(parsed_model)
             fwd_bound_tighthening(backend, parsed_model, timelimit=timeout)
+        elif method == 'domain':
+            self.logger.debug(f"Using IBR and then MILP bound propagation with domain constraints")
+
+            # link normalized vars to the decision variables which are used in the constraints
+            def wrap_constraint_cb(bkd, mdl, norm_xvars):
+                xvars = []
+                for i,b in enumerate(self.problem.input_bounds):
+                    if self.problem.input_type[i] == "int":
+                        xvars.append(bkd.var_int(mdl, lb=b[0], ub=b[1], name="x"+str(i)))
+                    else:
+                        xvars.append(bkd.var_cont(mdl, lb=b[0], ub=b[1], name="x"+str(i)))
+                    bkd.cst_eq(mdl, norm_xvars[i] * (b[1] - b[0]), xvars[-1] - b[0], "cst_norm_x"+str(i))
+                return self.problem.constraint_cb(bkd, mdl, xvars)
+
+            ibr_bounds(parsed_model)
+            fwd_bound_tighthening(backend, parsed_model, timelimit=timeout, constraint_cb=wrap_constraint_cb)
         else:
             raise Exception('Invalid bound propagation method')
         return parsed_model
