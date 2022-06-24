@@ -101,6 +101,7 @@ class EMLBackendTest(BaseTest):
         for k,v in results['milp'].items():
             self.assertAlmostEqual(results['milp'][k], results['both'][k], delta=CONFIG["equals_delta"])
 
+    # mock pwl_exp because otherwise different bounds will result in different pwl approximations and thus different results
     def pwl_exp_mock(bkd, milp_model, var, nnodes=7):
         return bkd.var_cont(milp_model, lb=0, ub=0, name="exp_out")
 
