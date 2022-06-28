@@ -16,9 +16,6 @@ class IncrementalDist(BaseMILP):
         self.lambda_ucb = self.cfg['lambda_ucb']
 
     def solve(self, keras_model, samples_x, samples_y):
-        bkd = get_backend(self.cfg['backend'])
-        milp_model = bkd.new_model()
-
         scaled_x_samples = min_max_scale_in(samples_x, np.array(self.problem.input_bounds))
 
         k_lip = self.compute_klip(samples_x, samples_y)
@@ -38,6 +35,7 @@ class IncrementalDist(BaseMILP):
 
         while True: # Incremental loop
             self.logger.debug(f"Incremental selection: {selection}")
+            bkd = get_backend(self.cfg['backend'])
             milp_model = bkd.new_model()
 
             xvars, scaled_xvars, yvars = self.embed_model(bkd, milp_model, parsed_mdl)

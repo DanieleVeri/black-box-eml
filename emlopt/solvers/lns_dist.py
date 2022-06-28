@@ -18,8 +18,6 @@ class LNSDist(BaseMILP):
         self.sub_problems = self.cfg['sub_problems']
 
     def solve(self, keras_model, samples_x, samples_y):
-        bkd = get_backend(self.cfg['backend'])
-
         scaled_x_samples = min_max_scale_in(samples_x, np.array(self.problem.input_bounds))
 
         k_lip = self.compute_klip(samples_x, samples_y)
@@ -36,6 +34,7 @@ class LNSDist(BaseMILP):
         feature_fixed = self.problem.input_shape - (self.problem.input_shape // self.sub_problems)
         for lns_i in range(self.sub_problems):
             self.logger.debug(f"Fixed feature selection: {feature_fixed}")
+            bkd = get_backend(self.cfg['backend'])
             milp_model = bkd.new_model()
 
             best = scaled_x_samples[np.argmin(samples_y)]
