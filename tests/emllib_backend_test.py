@@ -3,7 +3,7 @@ sys.path.append('.')
 
 import numpy as np
 import unittest
-from base_test import BaseTest
+from base_test_class import BaseTest
 from emlopt import solvers, surrogates
 from emlopt.utils import set_seed
 from emlopt.problem import build_problem
@@ -108,7 +108,7 @@ class EMLBackendTest(BaseTest):
         }
         def update_results(backend):
             def cb(main_variables, all_variables):
-                results[backend] = all_variables['vars']
+                results[backend] = main_variables
             return cb
         cfg = {"backend": 'cplex', "lambda_ucb": 1, "solver_timeout": 30}
         cplex_milp_model = solvers.SimpleDist(self.rosenbrock, cfg, 1, self.test_logger)
@@ -119,8 +119,7 @@ class EMLBackendTest(BaseTest):
         ortools_milp_model.optimize_acquisition_function(self.model_rosenbrock, *self.dataset_rosenbrock, timer_logger=self.test_logger)
         cplex_milp_model.optimize_acquisition_function(self.model_rosenbrock, *self.dataset_rosenbrock, timer_logger=self.test_logger)
         for k,v in results['ortools'].items():
-            if 'nn_z' not in k: # the activation can change value due to a floating point error
-                self.assertAlmostEqual(results['ortools'][k], results['cplex'][k], delta=CONFIG["equals_delta"])
+            self.assertAlmostEqual(results['ortools'][k], results['cplex'][k], delta=CONFIG["equals_delta"])
 
     def test_polynomial1D_cross_backend_match(self):
         results = {
@@ -129,7 +128,7 @@ class EMLBackendTest(BaseTest):
         }
         def update_results(backend):
             def cb(main_variables, all_variables):
-                results[backend] = all_variables['vars']
+                results[backend] = main_variables
             return cb
         cfg = {"backend": 'cplex', "lambda_ucb": 1, "solver_timeout": 30}
         cplex_milp_model = solvers.SimpleDist(self.polynomial, cfg, 1, self.test_logger)
@@ -149,7 +148,7 @@ class EMLBackendTest(BaseTest):
         }
         def update_results(backend):
             def cb(main_variables, all_variables):
-                results[backend] = all_variables['vars']
+                results[backend] = main_variables
             return cb
         cfg = {"backend": 'cplex', "lambda_ucb": 1, "solver_timeout": 30}
         cplex_milp_model = solvers.SimpleDist(self.mccormick, cfg, 1, self.test_logger)

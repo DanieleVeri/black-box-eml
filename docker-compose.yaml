@@ -1,12 +1,17 @@
-version: '2.0'
+version: '3.4'
+
 services:
-  jupyter:
-    build: .
+
+  development:
+    build:
+      context: .
+      dockerfile: ./env/Dockerfile
+    image: development
     ports:
     - "8888:8888"
     - "5678:5678"
     volumes:
+    - ./env:/app/env
     - ./emlopt:/app/emlopt
     - ./tests:/app/tests
-    - ./notebooks:/app/notebooks
     - ./experiments:/app/experiments

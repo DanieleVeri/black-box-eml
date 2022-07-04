@@ -8,7 +8,7 @@ fi
 
 while true
 do
-    echo "========== Debug server lisenting on port 5678... =========="
+    echo "========== Debug server lisenting on port 5678 - file: $1 =========="
     python -m ptvsd --host 0.0.0.0 --port 5678 --wait --multiprocess $1
     echo "========== Debug session terminated. =========="
 done

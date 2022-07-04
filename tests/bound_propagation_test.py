@@ -4,7 +4,7 @@ sys.path.append('.')
 import numpy as np
 import unittest
 from unittest.mock import patch
-from base_test import BaseTest
+from base_test_class import BaseTest
 from emlopt import solvers, surrogates
 from emlopt.emllib.backend import get_backend
 from emlopt.problem import build_problem
@@ -27,11 +27,11 @@ CONFIG = {
     }
 }
 
-class EMLBackendTest(BaseTest):
+class BoundPropagationTest(BaseTest):
 
     @classmethod
     def setUpClass(cls):
-        super(EMLBackendTest, cls).setUpClass()
+        super(BoundPropagationTest, cls).setUpClass()
         def linear_constraint(backend, model, xvars):
             return [[xvars[0] - xvars[1] <= 0, "ineq"]]
         cls.rosenbrock = build_problem("rosenbrock_3D", *build_rosenbrock(3), constraint_cb=linear_constraint)

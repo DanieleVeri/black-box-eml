@@ -3,7 +3,7 @@ sys.path.append('.')
 
 import numpy as np
 import unittest
-from base_test import BaseTest
+from base_test_class import BaseTest
 from emlopt.search_loop import SearchLoop
 from emlopt import solvers, surrogates
 from emlopt.utils import set_seed

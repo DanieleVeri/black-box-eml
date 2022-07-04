@@ -4,6 +4,11 @@ Daniele Verì
 
 [Development status](https://github.com/LIA-UniBo/eml-opt/projects/1)
 
+## Commands
+- Start jupyter server: `docker-compose up`
+- Run all tests: `docker-compose run development tests`
+- Launch debug server on file: `docker-compose run --service-ports debug <path_to_file>`
+
 ## Usage
 ```python
 from emlopt.search_loop import SearchLoop

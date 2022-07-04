@@ -43,7 +43,8 @@ class SearchLoop:
         logger = logging.getLogger('emlopt')
         stream = logging.StreamHandler(sys.stdout)
         stream.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-        logger.addHandler(stream)
+        if not logger.handlers:
+            logger.addHandler(stream)
         if self.verbosity == 0:
             logger.setLevel(logging.ERROR)
         elif self.verbosity == 1:

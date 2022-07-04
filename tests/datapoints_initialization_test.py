@@ -3,7 +3,7 @@ sys.path.append('.')
 
 import numpy as np
 import unittest
-from base_test import BaseTest
+from base_test_class import BaseTest
 from matplotlib import pyplot as plt
 from emlopt.problem import build_problem
 from emlopt.utils import set_seed

@@ -3,18 +3,17 @@ FROM python:3.7
 WORKDIR /app
 
 RUN mkdir dependencies
-COPY ./launch_debug.sh /app/launch_debug.sh
-COPY ./requirements.txt /app/dependencies/requirements.txt
+COPY ./env/requirements.txt /app/dependencies/requirements.txt
 
-RUN apt-get update -y && apt-get install zip -y
-RUN apt-get install wget git -y
-RUN pip install --upgrade pip 
+RUN apt-get update -y
+RUN apt-get install zip wget git -y
 
 # pip deps
+RUN pip install --upgrade pip
 RUN pip install -r dependencies/requirements.txt \
     RISE jupyter_contrib_nbextensions tables tensorflow_probability
 RUN jupyter contrib nbextension install --system
-# debug 
+# debug
 RUN pip install ptvsd
 
 # cplex
@@ -25,6 +24,10 @@ RUN pip install docplex
 RUN sh dependencies/cplex/cplex_studio1210.linux-x86-64.bin -f response.properties
 RUN python3 /opt/ibm/ILOG/CPLEX_Studio1210/python/setup.py install
 
-WORKDIR /app
-CMD ["jupyter", "notebook", "--port=8888", "--no-browser", \
-    "--ip=0.0.0.0", "--allow-root", "--notebook-dir=notebooks"]
+
+RUN mkdir env
+COPY ./env/entrypoint.sh /app/env/entrypoint.sh
+COPY ./env/launch_debug.sh /app/env/launch_debug.sh
+COPY ./env/run_all_tests.py /app/env/run_all_tests.py
+
+ENTRYPOINT ["/bin/bash", "/app/env/entrypoint.sh"]
