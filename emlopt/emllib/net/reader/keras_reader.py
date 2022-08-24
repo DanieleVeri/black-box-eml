@@ -38,7 +38,7 @@ def read_keras_sequential(kmodel):
             act = klayer.get_config()['activation']
             layer = describe.DNRDense(wgt, bias, act)
             net.add(layer)
-        elif klayer.__class__ != tensorflow.keras.layers.InputLayer:
+        elif klayer.__class__ != tf.keras.layers.InputLayer:
             raise ValueError(f'Unsupported layer type: {klayer.__class__}')
     # Return the network
     return net
