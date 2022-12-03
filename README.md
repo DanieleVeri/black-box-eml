@@ -1,8 +1,9 @@
 # EMLOpt
 ## Emlpirical Model Learning for Contrained Black Box optimization
-Daniele Verì
 
-[Development status](https://github.com/LIA-UniBo/eml-opt/projects/1)
+Master's thesis in AI at university of Bologna under the supervision of prof. Michele Lombardi and Andrea Borghesi.
+
+Based on work: Michele Lombardi, Michela Milano, and Andrea Bartolini. Empirical decision model learning. Artificial intelligence, 244, 2017-03
 
 ## Commands
 - Start jupyter server: `docker-compose up`
