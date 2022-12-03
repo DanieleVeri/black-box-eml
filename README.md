@@ -1,9 +1,12 @@
 # EMLOpt
 ## Emlpirical Model Learning for Contrained Black Box optimization
 
-Master's thesis in AI at university of Bologna under the supervision of prof. Michele Lombardi and Andrea Borghesi.
+Master's thesis in AI under the supervision of prof. Michele Lombardi and Andrea Borghesi.
 
 Based on work: Michele Lombardi, Michela Milano, and Andrea Bartolini. Empirical decision model learning. Artificial intelligence, 244, 2017-03
+
+This work employs a NN as surrogate model that is embedded into a MILP prescriptive model.
+The prescriptive model is then enriched with the domain constraints and optimize the acquisition function.
 
 ## Commands
 - Start jupyter server: `docker-compose up`
