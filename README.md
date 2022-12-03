@@ -4,9 +4,9 @@
 Master's thesis in AI under the supervision of prof. Michele Lombardi and Andrea Borghesi.  
 Based on work: Michele Lombardi, Michela Milano, and Andrea Bartolini. Empirical decision model learning. Artificial intelligence, 244, 2017-03
 
-This work employs a NN as surrogate model and embed it into a MILP prescriptive model which optimize an acquisition function.   
-PRO: the prescriptive model can be enriched with the domain constraints which guarantees that solutions are found in the feasible space.  
-CON: the solution search is way slower compared to other BBO techniques when dealing with problems with many high dimensional samples.  
+This work employs a NN as surrogate model and embed it into a MILP prescriptive model which optimize an acquisition function.
+- PRO: the prescriptive model can be enriched with the domain constraints which guarantees that solutions are found in the feasible space.  
+- CON: the solution search is way slower compared to other BBO techniques when dealing with problems with many high dimensional samples.  
 
 ## Commands
 - Start jupyter server: `docker-compose up`
